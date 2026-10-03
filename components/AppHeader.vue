@@ -37,6 +37,17 @@
         </NuxtLink>
       </nav>
 
+      <!-- Người dùng đang đăng nhập + nút đăng xuất -->
+      <div v-if="user" class="header-user">
+        <span class="user-avatar" :title="user.email" aria-hidden="true">{{ initial }}</span>
+        <span class="user-name" :title="user.email">{{ user.name || user.email }}</span>
+        <button type="button" class="logout-btn" @click="logout" title="Đăng xuất" aria-label="Đăng xuất">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>
+          </svg>
+        </button>
+      </div>
+
       <div class="header-status" v-if="statusLabel" role="status" aria-live="polite">
         <span class="pulse-dot" aria-hidden="true"></span>
         <span>{{ statusLabel }}</span>
@@ -46,8 +57,16 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 defineProps({
   statusLabel: { type: String, default: '' }
+})
+
+const { user, logout } = useAuth()
+const initial = computed(() => {
+  const n = (user.value?.name || user.value?.email || '?').replace(/^(Prof\.|Dr\.|\s)+/gi, '').trim()
+  return (n.split(/\s+/).pop() || '?').charAt(0).toUpperCase()
 })
 </script>
 
@@ -141,10 +160,35 @@ defineProps({
   .pulse-dot { animation: none; }
 }
 
+/* ── Người dùng đăng nhập ── */
+.header-user {
+  display: flex; align-items: center; gap: 8px;
+  padding-left: 16px; border-left: 1px solid rgba(255, 255, 255, 0.12);
+}
+.user-avatar {
+  width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(239, 90, 36, 0.15); border: 1px solid rgba(239, 90, 36, 0.5);
+  color: #EF5A24; font-family: 'Space Mono', monospace; font-size: 12px; font-weight: 700;
+}
+.user-name {
+  max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-family: 'Be Vietnam Pro', sans-serif; font-size: 12px; color: #B3BFCD;
+}
+.logout-btn {
+  width: 32px; height: 32px; border-radius: 6px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; border: 1px solid rgba(255, 255, 255, 0.18); color: #B3BFCD;
+  transition: color 0.15s, border-color 0.15s;
+}
+.logout-btn svg { width: 15px; height: 15px; }
+.logout-btn:hover { color: #EF5A24; border-color: #EF5A24; }
+
 /* Ngưỡng khớp với composables/useDeviceTier.js (BP_TABLET_MAX = 1024) để
    header đổi cùng lúc với các panel chuyển sang chế độ tablet/mobile. */
 @media (max-width: 1024px) {
   .header-status { display: none; } /* Ưu tiên chỗ cho 2 nút nav trên màn hẹp */
+  .user-name { display: none; }
 }
 @media (max-width: 640px) {
   .app-header { padding: 0 14px; height: var(--header-h-mobile, 54px); }
@@ -154,5 +198,9 @@ defineProps({
   .header-subtitle { display: none; }
   .header-nav { gap: 6px; }
   .nav-btn { padding: 6px 10px; font-size: 10px; }
+  .header-right { gap: 10px; }
+  .header-user { padding-left: 8px; gap: 6px; }
+  .user-avatar { display: none; }
+  .logout-btn { width: 28px; height: 28px; }
 }
 </style>
