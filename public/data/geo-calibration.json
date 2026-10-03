@@ -1,0 +1,13 @@
+{
+  "_README": "Placeholder pending real GPS calibration. anchor_latlng nen la 1 goc toa nha that (do tren Google Maps). anchor_cad_xy la diem CAD site-plan tuong ung DUNG goc do. scale_meters_per_unit va rotation_deg hien la GIA DINH, can hieu chinh khi co du lieu that.",
+  "anchor_latlng": [
+    106.6155,
+    11.1083
+  ],
+  "anchor_cad_xy": [
+    24511.66,
+    15588.475
+  ],
+  "scale_meters_per_unit": 0.02,
+  "rotation_deg": 0
+}
