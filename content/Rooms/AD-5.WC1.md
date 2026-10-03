@@ -2,7 +2,7 @@
 room_id: "AD-5.WC1"
 name: "M-WC - M-WC"
 building_id: "AD"
-floor: 1
+floor: 5
 departments:
   - "___"
 room_type: "___"

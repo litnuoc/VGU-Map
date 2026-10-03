@@ -2,7 +2,7 @@
 room_id: "AD-4.WC8"
 name: "UNI-WC - UNI-WC"
 building_id: "AD"
-floor: 1
+floor: 4
 departments:
   - "___"
 room_type: "___"

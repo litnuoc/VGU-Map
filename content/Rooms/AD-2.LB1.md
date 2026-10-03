@@ -2,7 +2,7 @@
 room_id: "AD-2.LB1"
 name: "WEST LOBBY - WEST LOBBY"
 building_id: "AD"
-floor: 1
+floor: 2
 departments:
   - "___"
 room_type: "___"

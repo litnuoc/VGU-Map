@@ -2,7 +2,7 @@
 room_id: "AD-2.LB3"
 name: "FOOD LOUNGE - FOOD LOUNGE"
 building_id: "AD"
-floor: 1
+floor: 2
 departments:
   - "___"
 room_type: "P. ĂN / DINING AREA"
