@@ -53,6 +53,9 @@ jobs:
 
       # Đổi thành npx nuxi (CLI chuẩn của Nuxt 3)
       - name: Generate Static HTML
+        env:
+          # Địa chỉ Apps Script cho trang đăng nhập (cùng biến với update_data.yml)
+          NUXT_PUBLIC_AUTH_URL: ${{ vars.APPS_SCRIPT_URL }}
         run: npx nuxi generate
 
       # [THÊM MỚI] Chốt chặn an toàn: Tắt Jekyll và kiểm tra file
