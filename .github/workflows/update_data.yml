@@ -1,0 +1,124 @@
+name: Update Info Data (Google Sheets → site)
+
+on:
+  schedule:
+    # Chạy mỗi 15 phút.
+    # Mỗi lần CÓ thay đổi sẽ kích hoạt deploy.yml; không thay đổi → không deploy.
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}   # Cho phép bấm chạy tay từ Actions UI
+
+# QUAN TRỌNG: commit thẳng lên nhánh deploy (OMG) để dữ liệu mới LÊN SÓNG.
+env:
+  TARGET_BRANCH: OMG
+
+permissions:
+  contents: write
+
+# Ngăn 2 lần chạy đồng thời ghi đè nhau.
+# cancel-in-progress: false → lần sau CHỜ lần trước xong, không kill.
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update-info-data:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # ── 0. Pre-flight: kiểm tra biến APPS_SCRIPT_URL trước khi làm bất cứ thứ gì ──
+      - name: Preflight — validate APPS_SCRIPT_URL
+        env:
+          # APPS_SCRIPT_URL phải là Repository Variable (không cần encrypt vì URL là public endpoint).
+          # Đặt tại: Settings → Secrets and variables → Actions → Variables tab
+          #   → New repository variable → Name: APPS_SCRIPT_URL
+          #   → Value: https://script.google.com/macros/s/<DEPLOYMENT_ID>/exec
+          APPS_SCRIPT_URL: ${{ vars.APPS_SCRIPT_URL }}
+        shell: bash
+        run: |
+          echo "──────────────────────────────────────────────────────────"
+          echo " Pre-flight: kiểm tra APPS_SCRIPT_URL"
+          echo "──────────────────────────────────────────────────────────"
+
+          if [ -z "$APPS_SCRIPT_URL" ]; then
+            echo "::error::APPS_SCRIPT_URL chưa được đặt."
+            echo ""
+            echo "  FIX: GitHub repo → Settings → Secrets and variables"
+            echo "       → Actions → Variables tab"
+            echo "       → New repository variable"
+            echo "       → Name: APPS_SCRIPT_URL"
+            echo "       → Value: https://script.google.com/macros/s/<DEPLOYMENT_ID>/exec"
+            echo ""
+            exit 1
+          fi
+
+          # Chỉ log phần an toàn của URL (ẩn deployment ID)
+          SAFE_URL=$(echo "$APPS_SCRIPT_URL" | sed 's|/macros/s/[^/]*/|/macros/s/***/|')
+          echo "  URL (masked): $SAFE_URL"
+
+          # Cảnh báo nếu URL kết thúc bằng /dev (yêu cầu auth)
+          if echo "$APPS_SCRIPT_URL" | grep -qE '/dev$'; then
+            echo "::error::URL kết thúc bằng /dev — yêu cầu đăng nhập Google, sẽ bị 404 trong CI."
+            echo "  FIX: Thay /dev → /exec trong biến APPS_SCRIPT_URL."
+            exit 1
+          fi
+
+          # Cảnh báo nếu URL là script editor (không phải Web App)
+          if echo "$APPS_SCRIPT_URL" | grep -qE '/d/.+/edit'; then
+            echo "::error::Đây là URL script editor, không phải Web App URL."
+            echo "  FIX: Apps Script → Deploy → Manage deployments → copy URL /exec"
+            exit 1
+          fi
+
+          # Cảnh báo (non-fatal) nếu không có /exec
+          if ! echo "$APPS_SCRIPT_URL" | grep -qE '/exec(\?|$)'; then
+            echo "::warning::URL không kết thúc bằng /exec — có thể gây 404."
+            echo "  URL đúng: https://script.google.com/macros/s/<DEPLOYMENT_ID>/exec"
+          fi
+
+          echo "  ✔ URL hợp lệ — tiếp tục."
+
+      # ── 1. Checkout ──────────────────────────────────────────────────────────
+      - name: Checkout repository (${{ env.TARGET_BRANCH }})
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TARGET_BRANCH }}
+          persist-credentials: true
+          fetch-depth: 0       # Cần full history để rebase không bị lỗi
+
+      # ── 2. Node.js (không cần npm ci — script chỉ dùng built-in modules) ────
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # ── 3. Sync ──────────────────────────────────────────────────────────────
+      - name: Sync data from Google Sheets via Apps Script
+        env:
+          APPS_SCRIPT_URL: ${{ vars.APPS_SCRIPT_URL }}
+        run: node scripts/sync_all_data.js
+
+      # ── 4. Commit & push (chỉ khi có file thay đổi) ─────────────────────────
+      - name: Commit & push if data changed
+        shell: bash
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name  "GitHub Action (data sync)"
+
+          git add public/data/info_data.json content/Rooms/
+
+          if git diff --staged --quiet; then
+            echo "Không có thay đổi trong staged area — bỏ qua commit."
+            exit 0
+          fi
+
+          ROOM_COUNT=$(git diff --staged --name-only | grep -c "content/Rooms/" || true)
+          git commit -m "chore(data): auto-sync rooms from Google Sheets [${ROOM_COUNT} files]"
+
+          # Pull --rebase để xử lý concurrent push (dù concurrency group đã bảo vệ,
+          # vẫn thêm --strategy-option=theirs cho data files để an toàn).
+          git pull --rebase \
+              -X theirs \
+              origin "$TARGET_BRANCH"
+
+          git push origin HEAD:"$TARGET_BRANCH"
+          echo "✔ Đã push lên nhánh $TARGET_BRANCH — deploy.yml sẽ được kích hoạt."
