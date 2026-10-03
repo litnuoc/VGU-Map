@@ -6,7 +6,7 @@ export default defineNuxtConfig({
   ssr: false,
 
   app: {
-    baseURL: '/VGU_Map/',
+    baseURL: '/VGU-Map/',
     buildAssetsDir: 'assets',
     head: {
       htmlAttrs: { lang: 'vi' },
@@ -72,29 +72,29 @@ content: {
   },
 
   pwa: {
-    base: '/VGU_Map/',
+    base: '/VGU-Map/',
     registerType: 'autoUpdate',
     manifest: {
       name: 'VGU Campus Map',
       short_name: 'VGU Map',
       description: 'Bản đồ tương tác khuôn viên Trường Đại học Việt Đức (VGU).',
       lang: 'vi',
-      start_url: '/VGU_Map/',
-      scope: '/VGU_Map/',
+      start_url: '/VGU-Map/',
+      scope: '/VGU-Map/',
       display: 'standalone',
       orientation: 'any',
       background_color: '#05080d',
       theme_color: '#0F1E36',
       categories: ['education', 'navigation', 'maps'],
       icons: [
-        { src: '/VGU_Map/icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
-        { src: '/VGU_Map/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-        { src: '/VGU_Map/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
+        { src: '/VGU-Map/icon-192x192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+        { src: '/VGU-Map/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
+        { src: '/VGU-Map/icon-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
       ]
     },
     workbox: {
       // Cho phép điều hướng SPA fallback về index (deep-link /equipment-... khi offline)
-      navigateFallback: '/VGU_Map/',
+      navigateFallback: '/VGU-Map/',
       // [FIX] KHÔNG đưa "glb" vào danh sách precache: vite-plugin-pwa mặc định
       // giới hạn 2MB/file để precache (tải sẵn lúc cài PWA), mà file .glb (mô
       // hình 3D) hầu như luôn > 2MB -> build FAIL CỨNG (throw Error, không chỉ
