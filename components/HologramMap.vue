@@ -921,18 +921,13 @@ let roomMarkers = []
 
 // ── Bật/tắt khung tên phòng ──────────────────────────────────────────────────
 // Chỉ ẩn .room-marker-card bằng CSS (class labels-off trên map container);
-// chấm .room-dot và vùng bấm vẫn giữ. Lựa chọn được nhớ theo trình duyệt.
-const LABELS_KEY = 'vgu-show-room-labels'
+// chấm .room-dot và vùng bấm vẫn giữ. Mỗi khi đổi tầng hoặc đổi toà nhà,
+// tự động bật lại (ON).
 const showRoomLabels = ref(true)
-try {
-  if (typeof window !== 'undefined' && window.localStorage.getItem(LABELS_KEY) === '0') {
-    showRoomLabels.value = false
-  }
-} catch (_) { /* localStorage không khả dụng — dùng mặc định ON */ }
 function setRoomLabels(on) {
   showRoomLabels.value = on
-  try { window.localStorage.setItem(LABELS_KEY, on ? '1' : '0') } catch (_) {}
 }
+watch([currentBuildingId, currentFloor], () => setRoomLabels(true))
 
 // ── Zoom-gate: CSS-class strategy ────────────────────────────────────────────
 const ROOM_MARKER_MINZOOM = 19.0
