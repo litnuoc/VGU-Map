@@ -9,7 +9,7 @@ on:
 
 # QUAN TRỌNG: commit thẳng lên nhánh deploy (OMG) để dữ liệu mới LÊN SÓNG.
 env:
-  TARGET_BRANCH: OMG
+  TARGET_BRANCH: main
 
 permissions:
   contents: write
