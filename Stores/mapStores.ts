@@ -61,6 +61,15 @@ export const useMapStore = defineStore('map', () => {
     }
   }
 
+  // ── Lọc khung tên phòng theo bộ lọc của FloorPanel ───────────────────────────
+  // null  → bộ lọc "Tất cả": mọi phòng hiện khung tên (mặc định)
+  // [ids] → chỉ các phòng này hiện khung tên; phòng khác chỉ còn chấm.
+  // Nút ON/OFF trên HologramMap vẫn tắt/bật toàn bộ khung tên độc lập.
+  const labelRoomIds = ref<string[] | null>(null)
+  function setLabelRoomIds(ids: string[] | null) {
+    labelRoomIds.value = ids
+  }
+
   function setFloor(floor: number | null) {
     selectedFloor.value = floor
   }
@@ -83,7 +92,7 @@ export const useMapStore = defineStore('map', () => {
   return {
     selectedRoom, selectedBuilding, selectedFloor, isLoading,
     availableFloors, currentFloor, floorsWithDetail,
-    activePanel, hasSelection,
-    focusOnRoom, focusOnBuilding, setFloor, clearSelection, setFloorMeta,
+    activePanel, hasSelection, labelRoomIds,
+    focusOnRoom, setLabelRoomIds, focusOnBuilding, setFloor, clearSelection, setFloorMeta,
   }
 })
