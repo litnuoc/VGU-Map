@@ -166,10 +166,19 @@ function roomIdFrom(roomNumber) {
   return String(roomNumber).replace(/\s+/g, '-').toUpperCase();
 }
 
+// Trích số tầng từ mã phòng. Bỏ tiền tố toà (AD-, B5-...) rồi:
+//   "2.CR1" / "B5-2.CR1"  -> 2   (dạng <tầng>.<mã>)
+//   "230" / "B5-230"      -> 2   (số phòng >= 3 chữ số: bỏ 2 số cuối)
+//   "B5-EV-01", "P", "TR" -> 1   (không xác định được -> mặc định tầng 1)
+// [FIX] Bản cũ có "\\d" (thừa dấu \) nên không bao giờ khớp số phòng,
+// khiến mọi phòng dạng B5-230 bị ghi nhầm là tầng 1.
 function floorFrom(roomId) {
-  const m = roomId.match(/(?:AD-|B\d-)?\\d{0,2}(\d)\d{2}/)
-         || roomId.match(/^(\d)\./);
-  return m ? parseInt(m[1], 10) : 1;
+  const s = String(roomId).toUpperCase().replace(/^(AD|B\d+)-/, '');
+  let m = s.match(/^(\d+)\./);
+  if (m) return parseInt(m[1], 10);
+  m = s.match(/^(\d{3,})/);
+  if (m) return parseInt(m[1].slice(0, -2), 10);
+  return 1;
 }
 
 // Canonical form for change-detection: strips last_updated so a re-fetch of
