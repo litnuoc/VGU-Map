@@ -5,6 +5,14 @@ export default defineNuxtConfig({
   // đồng thời né lỗi Nitro prerender không tôn trọng baseURL khi build cho GitHub Pages.
   ssr: false,
 
+  // Địa chỉ Apps Script dùng cho đăng nhập (Auth.gs, doPost). Được gán lúc build
+  // qua biến môi trường NUXT_PUBLIC_AUTH_URL (xem .github/workflows/deploy.yml).
+  runtimeConfig: {
+    public: {
+      authUrl: ''
+    }
+  },
+
   app: {
     baseURL: '/VGU-Map/',
     buildAssetsDir: 'assets',
@@ -35,7 +43,7 @@ export default defineNuxtConfig({
   nitro: {
     preset: 'github_pages', // dùng gạch dưới "github_pages"
     prerender: {
-      routes: ['/']
+      routes: ['/', '/login']
     },
     // [FIX] Thư mục models/ (chứa các file .glb) nằm ở GỐC REPO, không phải
     // trong public/ — Nuxt static generate mặc định CHỈ copy nội dung public/
