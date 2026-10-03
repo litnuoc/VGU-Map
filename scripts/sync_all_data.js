@@ -576,7 +576,11 @@ Hệ thống cảm biến và dữ liệu telemetry đang được đồng bộ.
   const existingRooms = existing && Array.isArray(existing.data) ? existing.data : [];
 
   if (existing && canonical(existingRooms) === canonical(rooms)) {
-    log('✅ Dữ liệu không đổi — bỏ qua ghi file (workflow sẽ không commit/deploy).');
+    // Vẫn regenerate content/Rooms/*.md: nếu logic tạo file (vd floorFrom) vừa
+    // được sửa, các file .md sẽ khác và git diff sẽ tự commit + deploy. Nếu .md
+    // không đổi, git diff rỗng -> workflow không commit gì.
+    regenerateRooms(rooms, driveData);
+    log('✅ Dữ liệu sheet không đổi — chỉ commit nếu file Rooms/ thay đổi.');
     log('─── Hoàn tất (no-op) ───────────────────────────────────────────────────');
     process.exit(0);
   }
