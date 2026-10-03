@@ -259,6 +259,14 @@ const filteredRooms = computed(() => {
   return rooms.value.filter(r => r.roomType === activeType.value)
 })
 
+// Báo cho bản đồ biết phòng nào được hiện khung tên theo bộ lọc đang chọn.
+// "Tất cả" → null (mọi phòng có tên). Rời tầng/toà → trả về mặc định.
+watch([activeType, filteredRooms], () => {
+  const all = !activeType.value || activeType.value === 'all'
+  mapStore.setLabelRoomIds(all ? null : filteredRooms.value.map(r => r.id))
+}, { immediate: true })
+onBeforeUnmount(() => mapStore.setLabelRoomIds(null))
+
 const statusClass = (status) => {
   if (status === 'active')   return 'is-active'
   if (status === 'inactive') return 'is-inactive'
