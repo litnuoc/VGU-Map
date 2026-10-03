@@ -1,6 +1,6 @@
 <!-- components/HologramMap.vue -->
 <template>
-  <div ref="mapContainer" class="map-container"></div>
+  <div ref="mapContainer" class="map-container" :class="{ 'labels-off': !showRoomLabels }"></div>
 
   <!-- ================= Thanh tìm kiếm toàn cục (Global Search) ================= -->
   <div class="global-search-container">
@@ -70,6 +70,24 @@
       >
         L{{ floor }}
       </button>
+
+      <!-- Bật/tắt khung tên phòng (chấm vị trí phòng vẫn giữ nguyên) -->
+      <div class="label-toggle" role="group" aria-label="Hiện khung tên phòng">
+        <button
+          class="label-toggle-btn"
+          :class="{ on: showRoomLabels }"
+          :aria-pressed="showRoomLabels"
+          title="Hiện khung tên phòng"
+          @click="setRoomLabels(true)"
+        >ON</button>
+        <button
+          class="label-toggle-btn"
+          :class="{ on: !showRoomLabels }"
+          :aria-pressed="!showRoomLabels"
+          title="Ẩn khung tên phòng, chỉ giữ chấm"
+          @click="setRoomLabels(false)"
+        >OFF</button>
+      </div>
     </div>
   </Transition>
 
@@ -901,6 +919,21 @@ watch(
 
 let roomMarkers = []
 
+// ── Bật/tắt khung tên phòng ──────────────────────────────────────────────────
+// Chỉ ẩn .room-marker-card bằng CSS (class labels-off trên map container);
+// chấm .room-dot và vùng bấm vẫn giữ. Lựa chọn được nhớ theo trình duyệt.
+const LABELS_KEY = 'vgu-show-room-labels'
+const showRoomLabels = ref(true)
+try {
+  if (typeof window !== 'undefined' && window.localStorage.getItem(LABELS_KEY) === '0') {
+    showRoomLabels.value = false
+  }
+} catch (_) { /* localStorage không khả dụng — dùng mặc định ON */ }
+function setRoomLabels(on) {
+  showRoomLabels.value = on
+  try { window.localStorage.setItem(LABELS_KEY, on ? '1' : '0') } catch (_) {}
+}
+
 // ── Zoom-gate: CSS-class strategy ────────────────────────────────────────────
 const ROOM_MARKER_MINZOOM = 19.0
 
@@ -1198,6 +1231,21 @@ defineExpose({ goToRoom, closeRoomDetail, selectBuilding, highlightEquipment })
 }
 .floor-btn.detail:hover { color: #fff; border-color: #06B6D4; }
 .floor-btn.active { background: #EF5A24; border-color: #EF5A24; color: #fff; box-shadow: 0 0 12px #EF5A24; }
+
+.label-toggle {
+  display: flex; align-items: center; margin-left: 6px; padding: 3px;
+  border: 1px solid rgba(239, 90, 36, 0.35); border-radius: 999px;
+  background: rgba(0, 0, 0, 0.2);
+}
+.label-toggle-btn {
+  height: 32px; min-width: 42px; padding: 0 10px; border: none; border-radius: 999px;
+  background: transparent; color: rgba(255, 255, 255, 0.55);
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.5px; cursor: pointer; transition: all 0.2s ease;
+}
+.label-toggle-btn:hover { color: #fff; }
+.label-toggle-btn.on { background: #EF5A24; color: #fff; box-shadow: 0 0 10px rgba(239, 90, 36, 0.6); }
+.map-container.labels-off :deep(.room-marker-card) { display: none; }
 
 .exit-btn { margin-right: 4px; color: #EF5A24; border-color: rgba(239, 90, 36, 0.25); font-size: 14px; }
 .exit-btn:hover { background: rgba(239, 90, 36, 0.12); color: #fff; }
