@@ -950,6 +950,17 @@ function clearRoomMarkers() {
   roomMarkers = []
 }
 
+// Ẩn khung tên của các phòng không thuộc bộ lọc đang chọn ở FloorPanel
+// (chấm vẫn giữ). Độc lập với nút ON/OFF: OFF vẫn ẩn toàn bộ khung tên.
+function applyLabelFilter() {
+  const ids = mapStore.labelRoomIds
+  const allowed = ids ? new Set(ids.map(id => String(id).toUpperCase())) : null
+  roomMarkers.forEach(({ el, roomId }) => {
+    el.classList.toggle('label-filtered', !!allowed && !allowed.has(String(roomId).toUpperCase()))
+  })
+}
+watch(() => mapStore.labelRoomIds, applyLabelFilter)
+
 function updateMarkerVisibility() {
   const selId = currentRoomId.value
   roomMarkers.forEach(({ el, roomId }) => {
@@ -1024,6 +1035,7 @@ function renderRoomMarkers(floorNumber) {
 
   syncZoomVisibility()
   updateMarkerVisibility()
+  applyLabelFilter()
 }
 
 async function getBuildingRoomsData(buildingId) {
@@ -1246,6 +1258,7 @@ defineExpose({ goToRoom, closeRoomDetail, selectBuilding, highlightEquipment })
 .label-toggle-btn:hover { color: #fff; }
 .label-toggle-btn.on { background: #EF5A24; color: #fff; box-shadow: 0 0 10px rgba(239, 90, 36, 0.6); }
 .map-container.labels-off :deep(.room-marker-card) { display: none; }
+:deep(.vgu-room-marker.label-filtered .room-marker-card) { display: none; }
 
 .exit-btn { margin-right: 4px; color: #EF5A24; border-color: rgba(239, 90, 36, 0.25); font-size: 14px; }
 .exit-btn:hover { background: rgba(239, 90, 36, 0.12); color: #fff; }
