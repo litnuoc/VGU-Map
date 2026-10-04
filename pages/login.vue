@@ -9,9 +9,9 @@
 
     <section class="hero">
       <div class="brand">
-        <span class="brand-badge"><img src="/VGU-Logo.png" alt="" /></span>
+        <img src="/vgu-logo-full.svg" class="brand-logo" alt="Vietnamese-German University" />
         <span class="brand-text">
-          <span class="brand-title"><span class="accent">VGU</span> MAP</span>
+          <span class="brand-title">University <span class="accent">Map</span></span>
           <span class="brand-sub">DIGITAL MAP V3.1</span>
         </span>
       </div>
@@ -131,7 +131,7 @@
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 
 definePageMeta({ layout: false })
-useHead({ title: 'Đăng nhập · VGU Map' })
+useHead({ title: 'Đăng nhập · Vietnamese-German University Map' })
 
 const route = useRoute()
 const { requestCode, verify, isConfigured } = useAuth()
@@ -246,13 +246,9 @@ onBeforeUnmount(() => clearInterval(timer))
 
 /* ── Hero ── */
 .hero { position: relative; z-index: 1; max-width: 640px; }
-.brand { display: flex; align-items: center; gap: 12px; margin-bottom: 48px; }
-.brand-badge {
-  width: 44px; height: 44px; border-radius: 10px; background: var(--accent);
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 0 24px rgba(245, 130, 32, 0.45);
-}
-.brand-badge img { width: 30px; height: auto; }
+.brand { display: flex; align-items: center; gap: 20px; margin-bottom: 48px; }
+.brand-logo { height: 64px; width: auto; display: block; flex-shrink: 0; }
+.brand-text { padding-left: 20px; border-left: 1px solid rgba(255, 255, 255, 0.15); }
 .brand-text { display: flex; flex-direction: column; line-height: 1.1; }
 .brand-title { font-weight: 800; font-size: 20px; letter-spacing: 0.5px; }
 .brand-sub { font-family: 'Space Mono', monospace; font-size: 11px; color: #00ffcc; letter-spacing: 1.5px; margin-top: 3px; }
@@ -353,7 +349,9 @@ onBeforeUnmount(() => clearInterval(timer))
     grid-template-columns: 1fr; gap: 28px; align-items: start;
     padding: 28px 16px 40px;
   }
-  .brand { margin-bottom: 24px; }
+  .brand { margin-bottom: 24px; gap: 14px; }
+  .brand-logo { height: 48px; }
+  .brand-text { padding-left: 14px; }
   .hero-lead { font-size: 15px; margin-bottom: 20px; }
   .features { display: none; }
   .card { padding: 24px 20px 20px; }
