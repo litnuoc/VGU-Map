@@ -11,12 +11,11 @@
 <template>
   <header class="app-header">
     <NuxtLink to="/" class="header-brand" aria-label="Về trang bản đồ">
-      <span class="header-badge">
-        <img src="/VGU-Logo.png" class="header-logo" alt="" />
-      </span>
+      <img src="/vgu-mark.svg" class="header-logo" alt="VGU" />
       <span class="header-titles">
         <span class="header-title">
-          <span class="title-accent">VGU</span> MAP
+          <span class="title-full">Vietnamese-German University <span class="title-accent">Map</span></span>
+          <span class="title-short">VGU <span class="title-accent">Map</span></span>
         </span>
         <span class="header-subtitle">DIGITAL MAP V3.1</span>
       </span>
@@ -95,19 +94,14 @@ const initial = computed(() => {
 }
 .header-brand:focus-visible { outline: 2px solid #00ffcc; outline-offset: 4px; }
 
-.header-badge {
-  display: flex; align-items: center; justify-content: center;
-  width: 38px; height: 38px;
-  background: #EF5A24;
-  border-radius: 8px;
-  flex-shrink: 0;
-}
-.header-logo { height: 22px; width: auto; }
+.header-logo { height: 30px; width: auto; flex-shrink: 0; display: block; }
+.title-short { display: none; }
 
 .header-titles { display: flex; flex-direction: column; gap: 1px; line-height: 1.1; }
 .header-title {
   font-family: 'Be Vietnam Pro', sans-serif;
   font-size: 16px; font-weight: 700; color: #fff; letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 .title-accent { color: #EF5A24; }
 .header-subtitle {
@@ -189,11 +183,12 @@ const initial = computed(() => {
 @media (max-width: 1024px) {
   .header-status { display: none; } /* Ưu tiên chỗ cho 2 nút nav trên màn hẹp */
   .user-name { display: none; }
+  .title-full { display: none; }
+  .title-short { display: inline; }
 }
 @media (max-width: 640px) {
   .app-header { padding: 0 14px; height: var(--header-h-mobile, 54px); }
-  .header-badge { width: 30px; height: 30px; }
-  .header-logo { height: 17px; }
+  .header-logo { height: 20px; }
   .header-title { font-size: 13px; }
   .header-subtitle { display: none; }
   .header-nav { gap: 6px; }
@@ -202,5 +197,9 @@ const initial = computed(() => {
   .header-user { padding-left: 8px; gap: 6px; }
   .user-avatar { display: none; }
   .logout-btn { width: 28px; height: 28px; }
+}
+/* Điện thoại hẹp: chỉ giữ logo VGU để đủ chỗ cho 2 nút nav + đăng xuất */
+@media (max-width: 480px) {
+  .header-titles { display: none; }
 }
 </style>
