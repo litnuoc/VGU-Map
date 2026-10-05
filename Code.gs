@@ -51,6 +51,8 @@ function doGet(e) {
             area: getSafeNumberText(rowData, ["area", "room_area", "dien_tich"], "--"),
             unbounded_height: getSafeNumberText(rowData, ["unbounded_height", "height", "chieu_cao"], "--"),
             capacity: getSafeNumberText(rowData, ["capacity", "suc_chua"], "--"),
+            // Lịch Google Calendar của phòng (cột "Calender_ID" trong Sheet) — dùng cho nút đặt phòng
+            calendar_id: getFirstString(rowData, ["calender_id", "calendar_id"], ""),
             status: getFirstString(rowData, ["status", "trang_thai"], "Chưa xác định") // [Đã sửa] Chuỗi bị đứt
           };
         }
