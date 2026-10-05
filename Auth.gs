@@ -37,6 +37,7 @@ function doPost(e) {
       case 'requestCode': return authJson_(requestCode_(req.email));
       case 'verify':      return authJson_(verifyCode_(req.email, req.code));
       case 'check':       return authJson_(checkToken_(req.token));
+      case 'freebusy':    return authJson_(freeBusy_(req.token, req.calendarId, req.timeMin, req.timeMax));
       default:            return authJson_({ ok: false, error: 'Hành động không hợp lệ.' });
     }
   } catch (err) {
@@ -118,6 +119,80 @@ function checkToken_(token) {
   const staff = getStaff_()[data.email];
   if (!staff) return { ok: false, error: 'Email không còn trong danh sách nhân viên.' };
   return { ok: true, email: data.email, name: staff.name || '', exp: data.exp };
+}
+
+// ── 4. Lịch trống/bận của phòng (chỉ cho người đã đăng nhập) ───────────────
+// Chỉ trả về các khoảng BẬN (start/end), KHÔNG trả tên cuộc họp hay người đặt.
+// Chỉ nhận lịch phòng (@resource.calendar.google.com) để không ai dùng chức
+// năng này dò lịch cá nhân của đồng nghiệp.
+function freeBusy_(token, calendarId, timeMin, timeMax) {
+  if (!readToken_(token)) return { ok: false, error: 'Phiên đăng nhập không hợp lệ hoặc đã hết hạn.' };
+
+  const id = String(calendarId || '').trim();
+  if (!/^[A-Za-z0-9._%+-]+@resource\.calendar\.google\.com$/.test(id)) {
+    return { ok: false, error: 'Lịch phòng không hợp lệ.' };
+  }
+  const start = new Date(timeMin), end = new Date(timeMax);
+  if (isNaN(start) || isNaN(end) || end <= start || end - start > 8 * 24 * 3600 * 1000) {
+    return { ok: false, error: 'Khoảng thời gian không hợp lệ (tối đa 8 ngày).' };
+  }
+
+  const cache = CacheService.getScriptCache();
+  const key = 'fb_' + Utilities.base64EncodeWebSafe(id + '|' + start.toISOString() + '|' + end.toISOString()).slice(0, 200);
+  const hit = cache.get(key);
+  if (hit) return JSON.parse(hit);
+
+  let busy = null, result;
+  try {
+    // Ưu tiên Google Calendar API (Services → Google Calendar API phải được bật)
+    const res = Calendar.Freebusy.query({
+      timeMin: start.toISOString(),
+      timeMax: end.toISOString(),
+      items: [{ id: id }],
+    });
+    const cal = res.calendars && res.calendars[id];
+    if (cal && cal.errors && cal.errors.length) {
+      result = { ok: false, error: 'Không có quyền xem lịch phòng này.' };
+    } else {
+      busy = (cal && cal.busy) || [];
+    }
+  } catch (err) {
+    // Chưa bật Calendar API → dùng CalendarApp (lịch phòng đã được tick trong Calendar)
+    try {
+      const calApp = CalendarApp.getCalendarById(id);
+      if (!calApp) {
+        result = { ok: false, error: 'Không có quyền xem lịch phòng này.' };
+      } else {
+        busy = calApp.getEvents(start, end)
+          .filter(function (ev) { return !ev.isAllDayEvent(); })
+          .map(function (ev) { return { start: ev.getStartTime().toISOString(), end: ev.getEndTime().toISOString() }; });
+      }
+    } catch (err2) {
+      console.error(err, err2);
+      result = { ok: false, error: 'Không đọc được lịch phòng.' };
+    }
+  }
+
+  if (!result) {
+    result = {
+      ok: true,
+      busy: busy.map(function (b) { return { start: b.start, end: b.end }; }),
+    };
+  }
+  try { cache.put(key, JSON.stringify(result), 120); } catch (e) { /* bỏ qua */ }
+  return result;
+}
+
+// Chạy tay 1 lần để Google xin quyền đọc Calendar và kiểm tra hoạt động:
+// chọn hàm testFreeBusy → Run → xem Execution log.
+function testFreeBusy() {
+  const id = 'c_188al7tr83620ha9j4jitrrg3cl4g@resource.calendar.google.com'; // AD-246
+  const now = new Date();
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const end = new Date(start.getTime() + 7 * 24 * 3600 * 1000);
+  const token = signToken_('test@vgu.edu.vn', Date.now() + 60000);
+  const r = freeBusy_(token, id, start.toISOString(), end.toISOString());
+  console.log(JSON.stringify(r).slice(0, 1000));
 }
 
 // ── Token: base64url(email|exp) + "." + HMAC-SHA256 (khoá bí mật lưu trong
