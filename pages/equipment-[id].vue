@@ -3,8 +3,8 @@
     <EquipmentDetail v-if="item" :item="item" @close="goBack" />
 
     <div v-else class="eq-empty">
-      <p>KHÔNG TÌM THẤY THIẾT BỊ: <b>{{ route.params.id }}</b></p>
-      <button class="eq-back" @click="goBack">[ ← QUAY LẠI BẢN ĐỒ ]</button>
+      <p>{{ t('eqpage.notFound') }} <b>{{ route.params.id }}</b></p>
+      <button class="eq-back" @click="goBack">{{ t('eqpage.back') }}</button>
     </div>
   </div>
 </template>
@@ -15,6 +15,7 @@ import { useAsyncData } from '#app'
 
 const route = useRoute()
 const router = useRouter()
+const { t } = useLang()
 
 // @nuxt/content v2 -> dùng queryContent() (KHÔNG phải queryCollection() của v3).
 const { data: item } = await useAsyncData(`equipment-${route.params.id}`, () =>

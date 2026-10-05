@@ -67,7 +67,7 @@
     <transition name="fade">
       <div v-if="isLoading" class="loading-overlay">
         <div class="cyber-loader" aria-hidden="true"></div>
-        <p>ĐANG KHỞI TẠO HỆ THỐNG BẢN ĐỒ…</p>
+        <p>{{ t('index.loading') }}</p>
       </div>
     </transition>
   </div>
@@ -75,6 +75,7 @@
 
 <script setup>
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
+const { t } = useLang()
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useMapStore } from '~/Stores/mapStores'

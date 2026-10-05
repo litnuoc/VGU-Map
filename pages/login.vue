@@ -7,6 +7,12 @@
     <div class="grid-bg" aria-hidden="true"></div>
     <div class="glow" aria-hidden="true"></div>
 
+    <!-- Chuyển ngôn ngữ -->
+    <div class="lang-toggle" role="group" :aria-label="t('header.lang')">
+      <button type="button" class="lang-btn" :class="{ on: lang === 'vi' }" :aria-pressed="lang === 'vi'" @click="setLang('vi')">VI</button>
+      <button type="button" class="lang-btn" :class="{ on: lang === 'en' }" :aria-pressed="lang === 'en'" @click="setLang('en')">EN</button>
+    </div>
+
     <section class="hero">
       <div class="brand">
         <img src="/vgu-logo-full.svg" class="brand-logo" alt="Vietnamese-German University" />
@@ -16,58 +22,55 @@
         </span>
       </div>
 
-      <h1 class="hero-title">
+      <h1 v-if="lang === 'en'" class="hero-title">
+        Digital campus map<br />of the <span class="accent"><span class="nowrap">Vietnamese-German</span> University</span>
+      </h1>
+      <h1 v-else class="hero-title">
         Bản đồ số<br />khuôn viên <span class="accent">Đại học <span class="nowrap">Việt Đức</span></span>
       </h1>
-      <p class="hero-lead">
-        Tra cứu toà nhà, từng tầng, từng phòng và thiết bị phòng thí nghiệm
-        trên bản đồ 3D tương tác — dành riêng cho cán bộ, nhân viên VGU.
-      </p>
+      <p class="hero-lead">{{ t('login.lead') }}</p>
 
       <ul class="features">
         <li>
           <span class="f-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-6h6v6"/></svg>
           </span>
-          <span><b>6 toà nhà</b> · hơn 1.000 phòng theo từng tầng</span>
+          <span><b>{{ t('login.f1b') }}</b> {{ t('login.f1') }}</span>
         </li>
         <li>
           <span class="f-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
           </span>
-          <span><b>Tìm phòng</b> và lọc theo chức năng</span>
+          <span><b>{{ t('login.f2b') }}</b> {{ t('login.f2') }}</span>
         </li>
         <li>
           <span class="f-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 7l9 5 9-5-9-5ZM3 17l9 5 9-5M3 12l9 5 9-5"/></svg>
           </span>
-          <span><b>Mô hình 3D</b> thiết bị phòng lab</span>
+          <span><b>{{ t('login.f3b') }}</b> {{ t('login.f3') }}</span>
         </li>
       </ul>
     </section>
 
     <section class="card" aria-labelledby="login-title">
       <div class="steps" aria-hidden="true">
-        <span :class="{ on: step >= 1 }">01 · EMAIL</span>
+        <span :class="{ on: step >= 1 }">{{ t('login.step1') }}</span>
         <span class="step-line" :class="{ on: step >= 2 }"></span>
-        <span :class="{ on: step >= 2 }">02 · MÃ XÁC NHẬN</span>
+        <span :class="{ on: step >= 2 }">{{ t('login.step2') }}</span>
       </div>
 
       <h2 id="login-title" class="card-title">
-        {{ step === 1 ? 'Đăng nhập' : 'Nhập mã xác nhận' }}
+        {{ step === 1 ? t('login.titleEmail') : t('login.titleCode') }}
       </h2>
-      <p class="card-sub" v-if="step === 1">
-        Dùng email công việc đã đăng ký trong danh sách nhân viên VGU.
-        Lần đầu sử dụng? Không cần đăng ký — chỉ cần nhập email.
-      </p>
+      <p class="card-sub" v-if="step === 1">{{ t('login.sub1') }}</p>
       <p class="card-sub" v-else>
-        Mã 6 số đã được gửi tới <b>{{ email }}</b>{{ staffName ? ` (${staffName})` : '' }}.
-        Mã có hiệu lực trong 10 phút.
+        {{ t('login.sub2') }} <b>{{ email }}</b>{{ staffName ? ` (${staffName})` : '' }}.
+        {{ t('login.sub2b') }}
       </p>
 
       <!-- Bước 1: email -->
       <form v-if="step === 1" class="form" @submit.prevent="sendCode" novalidate>
-        <label class="field-label" for="email">Email nhân viên</label>
+        <label class="field-label" for="email">{{ t('login.emailLabel') }}</label>
         <input
           id="email"
           ref="emailInput"
@@ -82,13 +85,13 @@
         />
         <button class="btn-primary" type="submit" :disabled="busy || !email">
           <span v-if="busy" class="spinner" aria-hidden="true"></span>
-          {{ busy ? 'Đang kiểm tra…' : 'Gửi mã đăng nhập' }}
+          {{ busy ? t('login.checking') : t('login.sendCode') }}
         </button>
       </form>
 
       <!-- Bước 2: mã OTP -->
       <form v-else class="form" @submit.prevent="checkCode" novalidate>
-        <label class="field-label" for="code">Mã xác nhận</label>
+        <label class="field-label" for="code">{{ t('login.codeLabel') }}</label>
         <input
           id="code"
           ref="codeInput"
@@ -105,23 +108,23 @@
         />
         <button class="btn-primary" type="submit" :disabled="busy || code.length !== 6">
           <span v-if="busy" class="spinner" aria-hidden="true"></span>
-          {{ busy ? 'Đang xác nhận…' : 'Đăng nhập' }}
+          {{ busy ? t('login.verifying') : t('login.signIn') }}
         </button>
         <div class="row-links">
-          <button type="button" class="link" @click="backToEmail" :disabled="busy">← Đổi email</button>
+          <button type="button" class="link" @click="backToEmail" :disabled="busy">{{ t('login.changeEmail') }}</button>
           <button type="button" class="link" @click="sendCode" :disabled="busy || cooldown > 0">
-            {{ cooldown > 0 ? `Gửi lại mã sau ${cooldown}s` : 'Gửi lại mã' }}
+            {{ cooldown > 0 ? t('login.resendIn', { s: cooldown }) : t('login.resend') }}
           </button>
         </div>
       </form>
 
-      <p v-if="error" class="msg msg-error" role="alert">{{ error }}</p>
+      <p v-if="error" class="msg msg-error" role="alert">{{ tServer(error) }}</p>
       <p v-if="!isConfigured" class="msg msg-error" role="alert">
-        Trang chưa được cấu hình máy chủ đăng nhập. Vui lòng liên hệ quản trị viên.
+        {{ t('login.notConfigured') }}
       </p>
 
       <p class="card-foot">
-        Không đăng nhập được? Liên hệ phòng FM để được thêm email vào danh sách nhân viên.
+        {{ t('login.foot') }}
       </p>
     </section>
   </main>
@@ -131,7 +134,8 @@
 import { ref, nextTick, onMounted, onBeforeUnmount } from 'vue'
 
 definePageMeta({ layout: false })
-useHead({ title: 'Đăng nhập · Vietnamese-German University Map' })
+const { t, tServer, lang, setLang } = useLang()
+useHead({ title: () => t('login.pageTitle') })
 
 const route = useRoute()
 const { requestCode, verify, isConfigured } = useAuth()
@@ -159,13 +163,13 @@ function startCooldown() {
 async function sendCode() {
   error.value = ''
   if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value)) {
-    error.value = 'Vui lòng nhập đúng định dạng email.'
+    error.value = t('login.invalidEmail')
     return
   }
   busy.value = true
   try {
     const r = await requestCode(email.value.toLowerCase())
-    if (!r.ok) { error.value = r.error || 'Không gửi được mã.'; return }
+    if (!r.ok) { error.value = r.error || t('login.sendFail'); return }
     staffName.value = r.name || ''
     step.value = 2
     code.value = ''
@@ -173,7 +177,7 @@ async function sendCode() {
     await nextTick()
     codeInput.value?.focus()
   } catch (e) {
-    error.value = e.message || 'Không kết nối được máy chủ đăng nhập.'
+    error.value = e.message || t('login.connFail')
   } finally {
     busy.value = false
   }
@@ -184,11 +188,11 @@ async function checkCode() {
   busy.value = true
   try {
     const r = await verify(email.value.toLowerCase(), code.value)
-    if (!r.ok) { error.value = r.error || 'Mã không đúng.'; code.value = ''; return }
+    if (!r.ok) { error.value = r.error || t('login.codeWrong'); code.value = ''; return }
     const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
     await navigateTo(redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : '/')
   } catch (e) {
-    error.value = e.message || 'Không kết nối được máy chủ đăng nhập.'
+    error.value = e.message || t('login.connFail')
   } finally {
     busy.value = false
   }
@@ -342,6 +346,20 @@ onBeforeUnmount(() => clearInterval(timer))
 @keyframes spin { to { transform: rotate(360deg); } }
 
 :focus-visible { outline: 2px solid #00ffcc; outline-offset: 2px; }
+
+/* ── Chuyển ngôn ngữ ── */
+.lang-toggle {
+  position: fixed; top: 18px; right: 20px; z-index: 5;
+  display: flex; padding: 2px; border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18); background: rgba(15, 30, 54, 0.7);
+}
+.lang-btn {
+  min-width: 36px; height: 28px; padding: 0 8px; border: none; border-radius: 999px; cursor: pointer;
+  background: transparent; color: var(--ink-soft);
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+}
+.lang-btn:hover { color: #fff; }
+.lang-btn.on { background: var(--accent); color: #fff; }
 
 /* ── Mobile ── */
 @media (max-width: 900px) {
