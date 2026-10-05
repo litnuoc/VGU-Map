@@ -10,9 +10,9 @@
 <template>
   <div class="catalog-page">
     <header class="catalog-head">
-      <p class="eyebrow">[ CƠ SỞ DỮ LIỆU THIẾT BỊ ]</p>
-      <h1>Danh mục thiết bị</h1>
-      <p class="sub">Toàn bộ thiết bị đã ghi nhận trên khuôn viên VGU — bấm vào một thẻ để xem chi tiết 3D.</p>
+      <p class="eyebrow">{{ t('eqlist.eyebrow') }}</p>
+      <h1>{{ t('eqlist.title') }}</h1>
+      <p class="sub">{{ t('eqlist.sub') }}</p>
     </header>
 
     <div class="toolbar">
@@ -21,38 +21,38 @@
         <input
           v-model="searchTerm"
           type="text"
-          placeholder="Tìm theo tên, model, hãng sản xuất..."
-          aria-label="Tìm kiếm thiết bị"
+          :placeholder="t('eqlist.searchPh')"
+          :aria-label="t('eqlist.searchAria')"
         />
       </div>
 
       <div class="filter-group">
-        <select v-model="categoryFilter" aria-label="Lọc theo phân loại">
-          <option value="">Mọi phân loại</option>
+        <select v-model="categoryFilter" :aria-label="t('eqlist.catAria')">
+          <option value="">{{ t('eqlist.catAll') }}</option>
           <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
         </select>
-        <select v-model="buildingFilter" aria-label="Lọc theo toà nhà">
-          <option value="">Mọi toà nhà</option>
+        <select v-model="buildingFilter" :aria-label="t('eqlist.bldAria')">
+          <option value="">{{ t('eqlist.bldAll') }}</option>
           <option v-for="b in buildings" :key="b" :value="b">{{ b }}</option>
         </select>
-        <select v-model="statusFilter" aria-label="Lọc theo trạng thái">
-          <option value="">Mọi trạng thái</option>
+        <select v-model="statusFilter" :aria-label="t('eqlist.stAria')">
+          <option value="">{{ t('eqlist.stAll') }}</option>
           <option v-for="s in statuses" :key="s" :value="s">{{ statusLabel(s) }}</option>
         </select>
       </div>
     </div>
 
-    <p class="result-count">{{ filteredEquipment.length }} / {{ allEquipment.length }} thiết bị</p>
+    <p class="result-count">{{ t('eqlist.count', { a: filteredEquipment.length, b: allEquipment.length }) }}</p>
 
-    <div v-if="pending" class="state-msg">Đang tải danh mục thiết bị...</div>
+    <div v-if="pending" class="state-msg">{{ t('eqlist.loading') }}</div>
 
     <div v-else-if="!allEquipment.length" class="state-msg">
-      Chưa có thiết bị nào được ghi nhận trong hệ thống.
+      {{ t('eqlist.none') }}
     </div>
 
     <div v-else-if="!filteredEquipment.length" class="state-msg">
-      Không tìm thấy thiết bị khớp với bộ lọc hiện tại.
-      <button class="clear-btn" @click="clearFilters">[ XOÁ BỘ LỌC ]</button>
+      {{ t('eqlist.noMatch') }}
+      <button class="clear-btn" @click="clearFilters">{{ t('eqlist.clear') }}</button>
     </div>
 
     <div v-else class="catalog-grid">
@@ -96,6 +96,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+const { t } = useLang()
 
 // @nuxt/content v2 -> queryContent() (không phải queryCollection() của v3),
 // đồng bộ cách gọi với pages/equipment-[id].vue và useVguData.js.
@@ -106,7 +107,7 @@ const { data, pending } = await useAsyncData('equipment-catalog', () =>
 const allEquipment = computed(() => data.value || [])
 
 useSeoMeta({
-  title: 'Danh mục thiết bị | VGU Map',
+  title: () => t('eqlist.title') + ' | VGU Map',
   description: 'Danh sách toàn bộ thiết bị thí nghiệm và máy móc trên khuôn viên VGU.'
 })
 
@@ -151,13 +152,11 @@ function clearFilters() {
   statusFilter.value = ''
 }
 
-const STATUS_LABELS = {
-  operational: 'Đang hoạt động',
-  maintenance: 'Đang bảo trì',
-  offline: 'Ngừng hoạt động'
-}
 function statusLabel(s) {
-  return STATUS_LABELS[s] || s || 'Chưa rõ'
+  if (!s) return t('status.unknown')
+  const key = 'status.' + s
+  const label = t(key)
+  return label === key ? s : label
 }
 
 // Ảnh lỗi (404, path chưa tồn tại) -> rơi về ô fallback thay vì icon-vỡ của trình duyệt.
