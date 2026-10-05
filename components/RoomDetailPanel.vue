@@ -35,7 +35,7 @@
 
     <!-- Vùng nội dung có thể cuộn -->
     <div class="panel-content">
-      <div v-if="isLoading" class="state-msg">Đang tải dữ liệu phòng…</div>
+      <div v-if="isLoading" class="state-msg">{{ t('room.loading') }}</div>
 
       <template v-else>
         <!-- 2. Ảnh thực tế — luôn có khung (frame) cố định kích thước, không phụ
@@ -70,7 +70,7 @@
                   <path d="M16 3h-8l-2 4h12l-2-4z"></path>
                   <line x1="4" y1="4" x2="20" y2="20"></line>
                 </svg>
-                <span>Không tải được ảnh</span>
+                <span>{{ t('room.photoError') }}</span>
               </div>
             </div>
           </div>
@@ -82,8 +82,8 @@
                 <circle cx="12" cy="14" r="3"></circle>
                 <path d="M16 3h-8l-2 4h12l-2-4z"></path>
               </svg>
-              <p>Chưa có ảnh thực tế</p>
-              <span>Sẽ cập nhật ảnh thực tế tại đây cho phòng {{ display.name }}</span>
+              <p>{{ t('room.noPhoto') }}</p>
+              <span>{{ t('room.noPhotoSub', { n: display.name }) }}</span>
             </div>
           </div>
         </div>
@@ -93,7 +93,7 @@
           <h3 class="card-title highlight-title">ROOM INCHARGE</h3>
           <div class="card-body">
             <p v-for="(person, idx) in display.occupants" :key="idx" class="incharge-name">
-              {{ person }}
+              {{ tData(person) }}
             </p>
             <p class="incharge-position" v-if="display.office">
               Office: {{ display.office }}
@@ -111,18 +111,27 @@
         <div class="info-card">
           <h3 class="card-title highlight-title">ROOM DESCRIPTION</h3>
           <div class="card-body">
-            <p><strong>Phân loại:</strong> {{ display.roomType }}</p>
-            <p v-if="display.roomFunction"><strong>Chức năng:</strong> {{ display.roomFunction }}</p>
-            <p><strong>Diện tích:</strong> {{ display.area }} m2</p>
-            <p><strong>Sức chứa:</strong> {{ display.capacity }}</p>
+            <p><strong>{{ t('room.type') }}:</strong> {{ display.roomType }}</p>
+            <p v-if="display.roomFunction"><strong>{{ t('room.function') }}:</strong> {{ display.roomFunction }}</p>
+            <p><strong>{{ t('room.area') }}:</strong> {{ display.area }} m2</p>
+            <p><strong>{{ t('room.capacity') }}:</strong> {{ display.capacity }}</p>
             
             <div class="working-hours mt-2">
-              <strong class="text-highlight">Trạng thái / Hoạt động:</strong>
-              <p>{{ display.status || 'N/A' }}</p>
+              <strong class="text-highlight">{{ t('room.status') }}:</strong>
+              <p>{{ tData(display.status) || 'N/A' }}</p>
             </div>
           </div>
         </div>
 
+
+        <!-- 4b. Đặt phòng (chỉ với phòng có lịch Google Calendar) -->
+        <RoomBookingCard
+          v-if="display.calendarId"
+          :key="display.calendarId"
+          :calendar-id="display.calendarId"
+          :room-id="props.roomId || ''"
+          :room-name="display.name || ''"
+        />
 
         <!-- 5. Featured Facility / Instruments -->
         <div class="info-card">
@@ -165,6 +174,7 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import EquipmentSidePanel from './EquipmentSidePanel.vue'
+import RoomBookingCard from './RoomBookingCard.vue'
 // [MOBILE-FIX] Convert RoomDetailPanel to a bottom sheet on mobile.
 // Previously it had NO mobile CSS — rendered as 400px right-side drawer
 // that completely covered the screen on phones.
@@ -172,6 +182,7 @@ import { useDeviceTier } from '~/composables/useDeviceTier'
 import { useBottomSheet } from '~/composables/useBottomSheet'
 
 const { tier } = useDeviceTier()
+const { t, tData } = useLang()
 // safeTopPx=130: same safe zone as FloorPanel (header+search+gap).
 // peek 40% so room info is readable without obscuring the map entirely.
 const { sheetStyle, onDragStart: onSheetDragStart, setFull: openFullSheet } = useBottomSheet({ peek: 0.40, full: 0.88, safeTopPx: 130 })
@@ -325,6 +336,7 @@ const display = computed(() => {
     area: r.area || 'N/A',
     capacity: r.capacity || 'N/A',
     status: r.rawStatus,
+    calendarId: r.calendarId || '',
     // B-2 FIX: was hard-coded to [] — now reads from the room record so that
     // FEATURED INSTRUMENTS actually lists what's in the Content frontmatter.
     // Supports both array (instruments: [...]) and the legacy string form.
