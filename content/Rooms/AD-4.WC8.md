@@ -1,6 +1,6 @@
 ---
 room_id: "AD-4.WC8"
-name: "UNI-WC - UNI-WC"
+name: "UNI-WC - VỆ SINH CHUNG"
 building_id: "AD"
 floor: 4
 departments:
@@ -8,6 +8,7 @@ departments:
 room_type: "___"
 area_m2: "7"
 capacity: "--"
+calendar_id: ""
 head_of_lab:
   name: "Chưa cập nhật"
   email: "contact@vgu.edu.vn"

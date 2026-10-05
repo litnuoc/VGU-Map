@@ -1,6 +1,6 @@
 ---
 room_id: "AD-2.LB3"
-name: "FOOD LOUNGE - FOOD LOUNGE"
+name: "FOOD LOUNGE - KHU VỰC ĂN NHẸ"
 building_id: "AD"
 floor: 2
 departments:
@@ -8,6 +8,7 @@ departments:
 room_type: "P. ĂN / DINING AREA"
 area_m2: "65"
 capacity: "--"
+calendar_id: ""
 head_of_lab:
   name: "Chưa cập nhật"
   email: "contact@vgu.edu.vn"

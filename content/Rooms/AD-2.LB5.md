@@ -1,6 +1,6 @@
 ---
 room_id: "AD-2.LB5"
-name: "COMP.C LOUNGE - COMP.C LOUNGE"
+name: "COMP.C LOUNGE - SẢNH KHU LÀM VIỆC I"
 building_id: "AD"
 floor: 2
 departments:
@@ -8,6 +8,7 @@ departments:
 room_type: "___"
 area_m2: "34"
 capacity: "--"
+calendar_id: ""
 head_of_lab:
   name: "Chưa cập nhật"
   email: "contact@vgu.edu.vn"

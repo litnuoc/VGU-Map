@@ -1,6 +1,6 @@
 ---
 room_id: "B5-P"
-name: "PARKING AREA - PARKING AREA"
+name: "PARKING AREA - CHỔ ĐẬU XE ĐẠP"
 building_id: "B5"
 floor: 1
 departments:
@@ -8,6 +8,7 @@ departments:
 room_type: "___"
 area_m2: "41.17"
 capacity: "--"
+calendar_id: ""
 head_of_lab:
   name: "Chưa cập nhật"
   email: "contact@vgu.edu.vn"

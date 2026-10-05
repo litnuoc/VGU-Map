@@ -1,6 +1,6 @@
 ---
 room_id: "AD-2.LB4"
-name: "STUDENT LOUNGE - STUDENT LOUNGE"
+name: "STUDENT LOUNGE - KHU NGHỈ SINH VIÊN"
 building_id: "AD"
 floor: 2
 departments:
@@ -8,6 +8,7 @@ departments:
 room_type: "___"
 area_m2: "46"
 capacity: "--"
+calendar_id: ""
 head_of_lab:
   name: "Chưa cập nhật"
   email: "contact@vgu.edu.vn"

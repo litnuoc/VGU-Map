@@ -1,6 +1,6 @@
 ---
 room_id: "AD-2.LB1"
-name: "WEST LOBBY - WEST LOBBY"
+name: "WEST LOBBY - SẢNH PHÍA TÂY"
 building_id: "AD"
 floor: 2
 departments:
@@ -8,6 +8,7 @@ departments:
 room_type: "___"
 area_m2: "28"
 capacity: "--"
+calendar_id: ""
 head_of_lab:
   name: "Chưa cập nhật"
   email: "contact@vgu.edu.vn"

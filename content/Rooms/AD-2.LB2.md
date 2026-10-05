@@ -1,6 +1,6 @@
 ---
 room_id: "AD-2.LB2"
-name: "SECURITY LOBBY - SECURITY LOBBY"
+name: "SECURITY LOBBY - SẢNH PHÍA ĐÔNG"
 building_id: "AD"
 floor: 2
 departments:
@@ -8,6 +8,7 @@ departments:
 room_type: "___"
 area_m2: "31"
 capacity: "--"
+calendar_id: ""
 head_of_lab:
   name: "Chưa cập nhật"
   email: "contact@vgu.edu.vn"
