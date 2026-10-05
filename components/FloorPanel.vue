@@ -51,8 +51,8 @@
       <button
         class="mfb-btn mfb-exit"
         @click="handleExitBuilding"
-        aria-label="Thoát khỏi toà nhà"
-        title="Thoát toà nhà"
+        :aria-label="t('floor.exit')"
+        :title="t('floor.exitShort')"
       >✕</button>
 
       <!-- Building label -->
@@ -80,7 +80,7 @@
       v-if="tier !== 'mobile'"
       class="toggle-btn"
       @click="isCollapsed = !isCollapsed"
-      :title="isCollapsed ? 'Mở danh sách phòng' : 'Thu gọn'"
+      :title="isCollapsed ? t('floor.open') : t('floor.collapse')"
     >
       <svg v-if="!isCollapsed" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
@@ -115,9 +115,9 @@
       </div>
 
       <div class="room-list">
-        <div v-if="isLoading" class="state-msg">Đang tải danh sách phòng…</div>
+        <div v-if="isLoading" class="state-msg">{{ t('floor.loading') }}</div>
         <div v-else-if="loadError" class="state-msg error">{{ loadError }}</div>
-        <div v-else-if="filteredRooms.length === 0" class="state-msg">Không có phòng nào thuộc loại này.</div>
+        <div v-else-if="filteredRooms.length === 0" class="state-msg">{{ t('floor.empty') }}</div>
 
         <button
           v-for="room in filteredRooms"
@@ -155,6 +155,7 @@ const props = defineProps({
 const emit = defineEmits(['select-room'])
 
 const mapStore = useMapStore()
+const { t } = useLang()
 const { activePanel, availableFloors, currentFloor, floorsWithDetail } = storeToRefs(mapStore)
 const { tier } = useDeviceTier()
 const { getRoomsByFloor } = useVguData()
@@ -230,7 +231,7 @@ const loadRooms = async () => {
     })
   } catch (err) {
     console.error('[FloorPanel] Lỗi khi tải phòng:', err)
-    loadError.value = 'Không tải được dữ liệu phòng. Vui lòng thử lại sau.'
+    loadError.value = t('floor.error')
     rooms.value = []
   } finally {
     isLoading.value = false
@@ -252,7 +253,7 @@ const roomTypes = computed(() => {
   return types.length > 0 ? ['all', ...types] : []
 })
 
-const typeLabel    = (type) => (type === 'all' ? 'Tất cả' : (ROOM_TYPE_LABELS[type] || type))
+const typeLabel    = (type) => (type === 'all' ? t('floor.all') : (type === 'other' ? t('floor.other') : (ROOM_TYPE_LABELS[type] || type)))
 const countByType  = (type) => type === 'all' ? rooms.value.length : rooms.value.filter(r => r.roomType === type).length
 const filteredRooms = computed(() => {
   if (!activeType.value || activeType.value === 'all') return rooms.value

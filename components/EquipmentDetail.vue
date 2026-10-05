@@ -1,16 +1,16 @@
 <!-- components/EquipmentDetail.vue -->
 <template>
   <div class="equipment-detail" :style="{ '--accent': ambientColor }">
-    <button @click="$emit('close')" class="btn-close">[ ĐÓNG ]</button>
+    <button @click="$emit('close')" class="btn-close">{{ t('eqd.close') }}</button>
 
     <header class="eq-header">
       <div class="sys-status">EQUIPMENT TELEMETRY: ONLINE</div>
       <h1>{{ item?.title }}</h1>
       <p class="eq-model">{{ item?.manufacturer }} — {{ item?.model }}</p>
       <div class="meta-info">
-        <span>TÒA: {{ item?.location?.building_id || 'N/A' }}</span> |
-        <span>TẦNG: {{ item?.location?.floor ?? 'N/A' }}</span> |
-        <span>PHÒNG: {{ item?.location?.room_id || 'N/A' }}</span>
+        <span>{{ t('eqd.building') }}: {{ item?.location?.building_id || 'N/A' }}</span> |
+        <span>{{ t('eqd.floor') }}: {{ item?.location?.floor ?? 'N/A' }}</span> |
+        <span>{{ t('eqd.room') }}: {{ item?.location?.room_id || 'N/A' }}</span>
       </div>
       <span class="status-badge" :class="item?.status">{{ item?.status || 'unknown' }}</span>
     </header>
@@ -34,13 +34,13 @@
       </div>
 
       <div class="info-block" v-if="item?.category || item?.departments?.length">
-        <h4>[ PHÂN LOẠI ]</h4>
+        <h4>{{ t('eqd.category') }}</h4>
         <p v-if="item?.category">{{ item.category }}</p>
         <p v-if="item?.departments?.length">{{ item.departments.join(', ') }}</p>
       </div>
 
       <div class="info-block" v-if="primaryMechanism">
-        <h4>[ CƠ CHẾ HOẠT ĐỘNG ]</h4>
+        <h4>{{ t('eqd.mechanism') }}</h4>
         <p>{{ primaryMechanism }}</p>
       </div>
 
@@ -52,6 +52,7 @@
 
 <script setup>
 import { computed, ref } from 'vue'
+const { t } = useLang()
 
 const props = defineProps({
   item: {

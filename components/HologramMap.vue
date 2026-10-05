@@ -17,7 +17,7 @@
         v-model="searchQuery"
         type="text"
         class="global-search-input"
-        :placeholder="currentBuildingId ? `Tìm phòng trong ${currentBuildingId}…` : 'Tìm phòng trên Campus…'"
+        :placeholder="currentBuildingId ? t('map.searchIn', { b: currentBuildingId }) : t('map.searchCampus')"
         @input="onSearchInput"
         @focus="onSearchInput"
         @blur="onSearchBlur"
@@ -39,7 +39,7 @@
       </button>
     </div>
     <div v-else-if="searchQuery.trim() && !isSearching" class="global-search-results">
-      <div class="room-search-empty">Không tìm thấy phòng phù hợp.</div>
+      <div class="room-search-empty">{{ t('map.noResult') }}</div>
     </div>
   </div>
 
@@ -48,8 +48,8 @@
     <!-- ARCH-FIX: on mobile the floor-bar is rendered inside FloorPanel's
          bottom sheet header. Hiding it here prevents the collision with
          the search bar that previous CSS fixes failed to solve. -->
-    <div v-if="currentBuildingId && tier !== 'mobile'" class="floor-bar" role="group" :aria-label="`Chọn tầng toà ${currentBuildingId}`">
-      <button class="floor-btn exit-btn" aria-label="Thoát khỏi toà nhà, về toàn cảnh" title="Thoát khỏi toà nhà" @click="exitBuilding">
+    <div v-if="currentBuildingId && tier !== 'mobile'" class="floor-bar" role="group" :aria-label="t('map.floorGroup', { b: currentBuildingId })">
+      <button class="floor-btn exit-btn" :aria-label="t('map.exit')" :title="t('map.exitShort')" @click="exitBuilding">
         ✕
       </button>
 
@@ -64,27 +64,27 @@
           detail: floorsWithDetail.has(floor) && floor !== currentFloor
         }"
         :aria-pressed="floor === currentFloor"
-        :aria-label="floorsWithDetail.has(floor) ? `Tầng ${floor}, có dữ liệu chi tiết` : `Tầng ${floor}`"
-        :title="floorsWithDetail.has(floor) ? `Tầng ${floor} — có dữ liệu chi tiết` : `Tầng ${floor}`"
+        :aria-label="floorsWithDetail.has(floor) ? t('map.floorDetail', { f: floor }) : t('map.floor', { f: floor })"
+        :title="floorsWithDetail.has(floor) ? t('map.floorDetail', { f: floor }) : t('map.floor', { f: floor })"
         @click="selectFloor(floor)"
       >
         L{{ floor }}
       </button>
 
       <!-- Bật/tắt khung tên phòng (chấm vị trí phòng vẫn giữ nguyên) -->
-      <div class="label-toggle" role="group" aria-label="Hiện khung tên phòng">
+      <div class="label-toggle" role="group" :aria-label="t('map.labelsGroup')">
         <button
           class="label-toggle-btn"
           :class="{ on: showRoomLabels }"
           :aria-pressed="showRoomLabels"
-          title="Hiện khung tên phòng"
+          :title="t('map.labelsOn')"
           @click="setRoomLabels(true)"
         >ON</button>
         <button
           class="label-toggle-btn"
           :class="{ on: !showRoomLabels }"
           :aria-pressed="!showRoomLabels"
-          title="Ẩn khung tên phòng, chỉ giữ chấm"
+          :title="t('map.labelsOff')"
           @click="setRoomLabels(false)"
         >OFF</button>
       </div>
@@ -95,7 +95,7 @@
   <Transition name="fade">
     <div v-if="currentBuildingId && !isGeolocated && tier !== 'mobile'" class="calib-notice">
       <span class="calib-dot"></span>
-      Sơ đồ phòng tòa <b>{{ currentBuildingId }}</b> chưa được định vị GPS — đang chờ hiệu chỉnh tọa độ.
+      {{ t('map.calibA') }} <b>{{ currentBuildingId }}</b> {{ t('map.calibB') }}
     </div>
   </Transition>
 
@@ -122,6 +122,7 @@ import { useDeviceTier } from '~/composables/useDeviceTier'
 
 const mapStore = useMapStore()
 const { tier } = useDeviceTier()
+const { t } = useLang()
 
 const { searchRooms } = useVguData()
 

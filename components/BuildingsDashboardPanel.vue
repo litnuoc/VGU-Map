@@ -22,14 +22,14 @@
       'is-offscreen': activePanel !== 'buildings'
     }"
     role="complementary"
-    aria-label="Danh sách toà nhà"
+    :aria-label="t('bld.list')"
   >
     <!-- Toggle tab -->
     <button
       class="toggle-tab"
       @click="toggleCollapse"
-      :title="isCollapsed ? 'Mở danh sách toà nhà' : 'Thu gọn'"
-      :aria-label="isCollapsed ? 'Mở danh sách toà nhà' : 'Thu gọn'"
+      :title="isCollapsed ? t('bld.open') : t('bld.collapse')"
+      :aria-label="isCollapsed ? t('bld.open') : t('bld.collapse')"
       :aria-expanded="!isCollapsed"
     >
       <!-- Desktop: left/right chevron for the side-drawer -->
@@ -48,27 +48,27 @@
       <!-- Mobile: iOS-style drag handle for the bottom sheet -->
       <div class="mobile-only mobile-handle">
         <span class="drag-pill" aria-hidden="true"></span>
-        <span v-if="isCollapsed" class="mobile-label">Danh sách Toà nhà</span>
+        <span v-if="isCollapsed" class="mobile-label">{{ t('bld.mobile') }}</span>
       </div>
     </button>
 
     <div class="panel-body">
       <div class="panel-head">
-        <p class="eyebrow">[ CƠ SỞ DỮ LIỆU KHUÔN VIÊN ]</p>
-        <h2 class="panel-title">Toàn bộ toà nhà</h2>
-        <p class="panel-sub">Bấm vào một toà để fly vào trên bản đồ.</p>
+        <p class="eyebrow">{{ t('bld.eyebrow') }}</p>
+        <h2 class="panel-title">{{ t('bld.title') }}</h2>
+        <p class="panel-sub">{{ t('bld.sub') }}</p>
       </div>
 
       <div class="panel-divider"></div>
 
       <div class="sidebar-meta">
         <h3 class="sidebar-title">VGU Campus Buildings</h3>
-        <p class="sidebar-hint">Bấm vào một toà nhà để mở tầng &amp; phòng ngay trên bản đồ.</p>
+        <p class="sidebar-hint">{{ t('bld.hint') }}</p>
       </div>
 
       <div v-if="isLoading" class="state-msg">
         <span class="pulse-dot"></span>
-        Đang tải dữ liệu…
+        {{ t('bld.loading') }}
       </div>
 
       <div v-else class="building-list">
@@ -93,15 +93,15 @@
           <span class="card-main">
             <span class="card-eyebrow">
               <span class="pulse-dot sm" aria-hidden="true"></span>
-              TOÀ {{ b.id }}
+              {{ t('bld.tag', { b: b.id }) }}
             </span>
-            <span class="card-name">Cụm {{ b.id }}</span>
+            <span class="card-name">{{ t('bld.name', { b: b.id }) }}</span>
           </span>
 
           <span class="card-stats">
-            <span><b>{{ b.roomCount }}</b> phòng</span>
-            <span><b>{{ b.labCount }}</b> lab</span>
-            <span><b>{{ b.floors.length }}</b> tầng</span>
+            <span><b>{{ b.roomCount }}</b> {{ t('bld.rooms') }}</span>
+            <span><b>{{ b.labCount }}</b> {{ t('bld.labs') }}</span>
+            <span><b>{{ b.floors.length }}</b> {{ t('bld.floors') }}</span>
           </span>
         </button>
       </div>
@@ -118,6 +118,7 @@ import { useMapStore } from '~/Stores/mapStores'
 const emit = defineEmits(['select-building'])
 
 const mapStore = useMapStore()
+const { t } = useLang()
 const { activePanel } = storeToRefs(mapStore)
 
 const config = useRuntimeConfig()

@@ -10,7 +10,7 @@
 -->
 <template>
   <header class="app-header">
-    <NuxtLink to="/" class="header-brand" aria-label="Về trang bản đồ">
+    <NuxtLink to="/" class="header-brand" :aria-label="t('header.home')">
       <img src="/vgu-mark.svg" class="header-logo" alt="VGU" />
       <span class="header-titles">
         <span class="header-title">
@@ -22,9 +22,9 @@
     </NuxtLink>
 
     <div class="header-right">
-      <nav class="header-nav" aria-label="Điều hướng chính">
+      <nav class="header-nav" :aria-label="t('header.nav')">
         <NuxtLink to="/" class="nav-btn" exact-active-class="nav-btn--active">
-          Bản đồ tương tác
+          {{ t('header.map') }}
         </NuxtLink>
         <!-- "Toà nhà" đã được tích hợp thành panel trực tiếp trên bản đồ
              (components/BuildingsDashboardPanel.vue), truy cập qua nút HUD
@@ -32,15 +32,21 @@
         <!-- pages/equipment/index.vue: trang danh mục toàn bộ thiết bị (route /equipment,
              không đụng /equipment-:id của trang chi tiết vì khác tên file/segment). -->
         <NuxtLink to="/equipment" class="nav-btn" active-class="nav-btn--active">
-          Tất cả thiết bị
+          {{ t('header.equipment') }}
         </NuxtLink>
       </nav>
+
+      <!-- Chuyển ngôn ngữ Việt / Anh -->
+      <div class="lang-toggle" role="group" :aria-label="t('header.lang')">
+        <button type="button" class="lang-btn" :class="{ on: lang === 'vi' }" :aria-pressed="lang === 'vi'" @click="setLang('vi')">VI</button>
+        <button type="button" class="lang-btn" :class="{ on: lang === 'en' }" :aria-pressed="lang === 'en'" @click="setLang('en')">EN</button>
+      </div>
 
       <!-- Người dùng đang đăng nhập + nút đăng xuất -->
       <div v-if="user" class="header-user">
         <span class="user-avatar" :title="user.email" aria-hidden="true">{{ initial }}</span>
         <span class="user-name" :title="user.email">{{ user.name || user.email }}</span>
-        <button type="button" class="logout-btn" @click="logout" title="Đăng xuất" aria-label="Đăng xuất">
+        <button type="button" class="logout-btn" @click="logout" :title="t('header.logout')" :aria-label="t('header.logout')">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/>
           </svg>
@@ -63,6 +69,7 @@ defineProps({
 })
 
 const { user, logout } = useAuth()
+const { t, lang, setLang } = useLang()
 const initial = computed(() => {
   const n = (user.value?.name || user.value?.email || '?').replace(/^(Prof\.|Dr\.|\s)+/gi, '').trim()
   return (n.split(/\s+/).pop() || '?').charAt(0).toUpperCase()
@@ -154,6 +161,20 @@ const initial = computed(() => {
   .pulse-dot { animation: none; }
 }
 
+/* ── Chuyển ngôn ngữ ── */
+.lang-toggle {
+  display: flex; align-items: center; padding: 2px; border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.lang-btn {
+  min-width: 34px; height: 26px; padding: 0 8px; border: none; border-radius: 999px; cursor: pointer;
+  background: transparent; color: #B3BFCD;
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  transition: background 0.15s, color 0.15s;
+}
+.lang-btn:hover { color: #fff; }
+.lang-btn.on { background: #EF5A24; color: #fff; }
+
 /* ── Người dùng đăng nhập ── */
 .header-user {
   display: flex; align-items: center; gap: 8px;
@@ -197,6 +218,7 @@ const initial = computed(() => {
   .header-user { padding-left: 8px; gap: 6px; }
   .user-avatar { display: none; }
   .logout-btn { width: 28px; height: 28px; }
+  .lang-btn { min-width: 28px; height: 22px; padding: 0 5px; font-size: 10px; }
 }
 /* Điện thoại hẹp: chỉ giữ logo VGU để đủ chỗ cho 2 nút nav + đăng xuất */
 @media (max-width: 480px) {

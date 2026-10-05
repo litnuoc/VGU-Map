@@ -33,9 +33,9 @@
       <header class="esp-header esp-header--sticky">
         <div class="esp-header__breadcrumb">
           <span class="esp-header__eyebrow">{{ roomLabel }}</span>
-          <h2 class="esp-header__title">Thiết bị phòng học</h2>
+          <h2 class="esp-header__title">{{ t('esp.title') }}</h2>
         </div>
-        <button class="esp-icon-btn" aria-label="Đóng" @click="handleClose">
+        <button class="esp-icon-btn" :aria-label="t('common.close')" @click="handleClose">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
@@ -47,7 +47,7 @@
         <!-- Loading -->
         <div v-if="isLoadingList" class="esp-state">
           <span class="esp-state__spinner"></span>
-          <p>Đang tải danh sách thiết bị…</p>
+          <p>{{ t('esp.loading') }}</p>
         </div>
 
         <!-- Empty -->
@@ -56,7 +56,7 @@
             <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
             <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
           </svg>
-          <p>Chưa có thiết bị nào được ghi nhận cho phòng này.</p>
+          <p>{{ t('esp.empty') }}</p>
         </div>
 
         <!-- Machine cards -->
@@ -90,20 +90,20 @@
     <template v-else>
       <!-- ── Single Sticky Glassmorphism Header with SVG Back Arrow ── -->
       <header class="esp-header esp-header--sticky esp-header--detail">
-        <button class="esp-back-btn" @click="selectedMachine = null" aria-label="Quay lại">
+        <button class="esp-back-btn" @click="selectedMachine = null" :aria-label="t('esp.back')">
           <!-- Elegant SVG arrow — no browser default button appearance -->
           <svg class="esp-back-btn__arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <line x1="19" y1="12" x2="5" y2="12"/>
             <polyline points="11 18 5 12 11 6"/>
           </svg>
-          <span class="esp-back-btn__label">Danh sách</span>
+          <span class="esp-back-btn__label">{{ t('esp.list') }}</span>
         </button>
 
         <div class="esp-header__title-wrap">
           <span class="esp-header__title esp-header__title--detail" :title="selectedMachine.title">{{ selectedMachine.title }}</span>
         </div>
 
-        <button class="esp-icon-btn" aria-label="Đóng" @click="handleClose">
+        <button class="esp-icon-btn" :aria-label="t('common.close')" @click="handleClose">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
@@ -140,7 +140,7 @@
             <div slot="progress-bar" class="esp-model-progress"></div>
             <div slot="poster" class="esp-model-loading">
               <span class="esp-state__spinner esp-state__spinner--sm"></span>
-              <span>{{ statusText }}</span>
+              <span>{{ t(statusText) }}</span>
             </div>
           </model-viewer>
 
@@ -150,7 +150,7 @@
               <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
               <polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/>
             </svg>
-            <span>Chưa có mô hình 3D</span>
+            <span>{{ t('esp.no3d') }}</span>
           </div>
 
           <!-- Scan line overlay for digital-twin feel -->
@@ -183,10 +183,10 @@
             :key="idx"
             class="esp-thumb esp-thumb--photo"
             :class="{ 'esp-thumb--active': viewMode === 'photo' && activePhotoIndex === idx }"
-            :title="`Ảnh ${idx + 1}`"
+            :title="t('esp.photo', { n: idx + 1 })"
             @click="selectPhoto(idx)"
           >
-            <img :src="photo" :alt="`${selectedMachine.title} ảnh ${idx + 1}`" />
+            <img :src="photo" :alt="t('esp.photoAlt', { t: selectedMachine.title, n: idx + 1 })" />
           </button>
         </div>
 
@@ -209,22 +209,22 @@
           <!-- Metadata rows -->
           <dl class="esp-meta">
             <div class="esp-meta__row">
-              <dt>MÔ TẢ</dt>
+              <dt>{{ t('esp.desc') }}</dt>
               <dd v-if="selectedMachine.story">{{ selectedMachine.story }}</dd>
-              <dd v-else class="esp-meta__placeholder">Thông tin chi tiết sẽ được cập nhật sau.</dd>
+              <dd v-else class="esp-meta__placeholder">{{ t('esp.descPending') }}</dd>
             </div>
             <div v-if="selectedMachine.category" class="esp-meta__row">
-              <dt>PHÂN LOẠI</dt>
+              <dt>{{ t('esp.category') }}</dt>
               <dd>{{ selectedMachine.category }}</dd>
             </div>
             <div class="esp-meta__row">
-              <dt>VỊ TRÍ</dt>
+              <dt>{{ t('esp.location') }}</dt>
               <dd>{{ locationLabel(selectedMachine) }}</dd>
             </div>
           </dl>
 
           <p class="esp-footer-note">
-            Thông số kỹ thuật, quy trình vận hành và lịch bảo trì sẽ được cập nhật trong phiên bản tiếp theo.
+            {{ t('esp.future') }}
           </p>
         </div>
       </div>
@@ -238,6 +238,7 @@ import { useDeviceTier } from '~/composables/useDeviceTier'
 import { useBottomSheet } from '~/composables/useBottomSheet'
 
 const { tier } = useDeviceTier()
+const { t } = useLang()
 const { sheetStyle, onDragStart: onSheetDragStart } = useBottomSheet({ peek: 0.7, full: 0.94, onDismiss: () => handleClose() })
 
 const props = defineProps({
@@ -283,7 +284,7 @@ const selectedMachine = ref(null)
 
 const modelFailed = ref(false)
 const triedFallback = ref(false)
-const statusText = ref('Đang tải mô hình 3D…')
+const statusText = ref('esp.loading3d') // key trong useLang
 const activeModelSrc = ref('')
 const viewMode = ref('model')
 const activePhotoIndex = ref(0)
@@ -313,7 +314,7 @@ const onModelError = () => {
     console.warn('[EquipmentSidePanel] Primary path failed, trying fallback:',
       selectedMachine.value?.modelUrl, '->', fallbackModelSrc.value)
     triedFallback.value = true
-    statusText.value = 'Đang thử lại đường dẫn phụ…'
+    statusText.value = 'esp.retry3d'
     activeModelSrc.value = fallbackModelSrc.value
     armModelTimeout()
     return
@@ -338,7 +339,7 @@ watch(() => selectedMachine.value?.modelUrl, (url) => {
   clearModelTimeout()
   modelFailed.value = false
   triedFallback.value = false
-  statusText.value = 'Đang tải mô hình 3D…'
+  statusText.value = 'esp.loading3d'
   activeModelSrc.value = url || ''
   if (url) armModelTimeout()
 }, { immediate: true })
@@ -351,14 +352,15 @@ const roomLabel = computed(() => {
 })
 
 const statusLabel = (status) => {
-  const map = { operational: 'Đang hoạt động', maintenance: 'Đang bảo trì', offline: 'Ngưng hoạt động' }
-  return map[status] || status
+  const key = 'status.' + status
+  const s = t(key)
+  return s === key ? status : s
 }
 
 const locationLabel = (m) => {
   const parts = [
     m.buildingId,
-    m.floor != null ? `Tầng ${m.floor}` : null,
+    m.floor != null ? t('esp.floor', { f: m.floor }) : null,
     m.roomId,
     m.stationId
   ].filter(Boolean)
