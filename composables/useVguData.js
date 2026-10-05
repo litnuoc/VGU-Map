@@ -189,6 +189,7 @@ export const useVguData = () => {
     department: Array.isArray(r.departments) ? r.departments.join(', ') : (r.departments || ''),
     area: r.area_m2 || '',
     capacity: r.capacity || '',
+    calendarId: r.calendar_id || '',
     occupants: r.head_of_lab?.name ? [r.head_of_lab.name] : []
   })
 
