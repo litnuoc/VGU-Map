@@ -90,10 +90,20 @@ export function useAuth() {
     }
   }
 
+  // Lịch trống/bận của 1 phòng (Auth.gs → freeBusy_). Trả về { ok, busy:[{start,end}] }.
+  async function freeBusy(calendarId, timeMin, timeMax) {
+    const token = store.get(TOKEN_KEY)
+    if (!token) return { ok: false, error: 'Bạn cần đăng nhập lại.' }
+    return call({
+      action: 'freebusy', token, calendarId,
+      timeMin: timeMin.toISOString(), timeMax: timeMax.toISOString(),
+    })
+  }
+
   function logout() {
     clear()
     return navigateTo('/login')
   }
 
-  return { user, requestCode, verify, ensureSession, logout, isConfigured: !!authUrl }
+  return { user, requestCode, verify, ensureSession, logout, freeBusy, isConfigured: !!authUrl }
 }
