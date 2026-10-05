@@ -334,7 +334,19 @@ async function fetchWithRetry(url) {
       const res = await fetchOnce(url);
       lastResponse = res; // keep reference (body not yet consumed)
 
-      // ── Permanent 4xx: configuration bugs — never retry ─────────────────
+      // ── HTTP 404 ───────────────────────────────────────────────────────
+      // Apps Script đôi khi trả 404 TẠM THỜI (lúc vừa deploy version mới, hoặc
+      // trục trặc phía Google khi redirect sang script.googleusercontent.com),
+      // dù URL đúng — đã gặp thực tế ở lần chạy theo lịch. Vì vậy thử lại với
+      // backoff; chỉ báo lỗi cấu hình khi 404 lặp lại ở MỌI lần thử.
+      if (res.status === 404 && attempt < MAX_RETRIES) {
+        await res.text().catch(() => '');
+        lastErr = new Error('HTTP 404 Not Found');
+        const delayMs = RETRY_BASE_MS * Math.pow(2, attempt - 1) + jitter();
+        warn(`HTTP 404 (có thể tạm thời) → thử lại sau ${Math.round(delayMs / 1_000)}s…`);
+        await sleep(delayMs);
+        continue;
+      }
       if (res.status === 404) {
         fail(
           `Apps Script trả HTTP 404 Not Found.`,
