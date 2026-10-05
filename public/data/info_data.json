@@ -1,7 +1,7 @@
 {
   "status": "success",
   "total_rooms": 1259,
-  "last_updated": "2026-10-05T09:11:54.328Z",
+  "last_updated": "2026-10-05T10:25:41.232Z",
   "data": [
     {
       "sheet_source": "B1",
@@ -6734,7 +6734,7 @@
       "area": "55",
       "unbounded_height": "4000",
       "capacity": "--",
-      "calendar_id": "",
+      "calendar_id": "c_18849g13u2haegiji0j4u652riufg@resource.calendar.google.com",
       "status": "Đang sử dụng",
       "occupant_display": ""
     },
