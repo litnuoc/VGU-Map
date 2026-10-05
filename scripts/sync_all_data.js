@@ -196,6 +196,7 @@ function canonical(rooms) {
       area:              r.area              ?? '',
       unbounded_height:  r.unbounded_height  ?? '',
       capacity:          r.capacity          ?? '',
+      calendar_id:       r.calendar_id       ?? '',
       status:            r.status            ?? '',
       occupant_display:  r.occupant_display  ?? '',
     }))
@@ -552,6 +553,7 @@ departments:
 room_type: "${yamlSafe(room.fm_room_function || '___')}"
 area_m2: "${yamlSafe(room.area || '--')}"
 capacity: "${yamlSafe(room.capacity || '--')}"
+calendar_id: "${yamlSafe(room.calendar_id || '')}"
 head_of_lab:
   name: "${yamlSafe(room.occupant_display || 'Chưa cập nhật')}"
   email: "contact@vgu.edu.vn"
