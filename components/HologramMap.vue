@@ -278,6 +278,8 @@ onMounted(() => {
 
   map.on('click', 'vgu-buildings-3d', (e) => {
     const feature = e.features[0]
+    // Công trình phụ (kind = 'facility') chỉ để hiển thị, không có tầng/phòng
+    if (feature.properties?.kind === 'facility') return
     const buildingId = feature.properties?.building_id || feature.properties?.cluster_id
     if (buildingId) selectBuilding(buildingId)
   })
@@ -305,7 +307,9 @@ onMounted(() => {
   })
 
   const setPointer = (v) => () => { map.getCanvas().style.cursor = v ? 'pointer' : '' }
-  map.on('mouseenter', 'vgu-buildings-3d', setPointer(true))
+  map.on('mousemove', 'vgu-buildings-3d', (e) => {
+    map.getCanvas().style.cursor = e.features?.[0]?.properties?.kind === 'facility' ? '' : 'pointer'
+  })
   map.on('mouseleave', 'vgu-buildings-3d', setPointer(false))
   map.on('mouseenter', 'vgu-rooms-fill', setPointer(true))
   map.on('mouseleave', 'vgu-rooms-fill', setPointer(false))
@@ -391,7 +395,7 @@ async function loadCampusBuildings() {
       type: 'fill-extrusion',
       source: 'vgu-campus',
       paint: {
-        'fill-extrusion-color': '#1a1a2e',
+        'fill-extrusion-color': ['match', ['get', 'kind'], 'facility', '#22263a', '#1a1a2e'],
         'fill-extrusion-height': ['get', 'height'],
         'fill-extrusion-base': ['get', 'base_height'],
         'fill-extrusion-opacity': 0.9
