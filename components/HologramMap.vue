@@ -99,6 +99,25 @@
     </div>
   </Transition>
 
+  <!-- ================= Chế độ thử mô hình 3D (chỉ email trong MODEL_TESTERS) =================
+       File .glb chọn từ máy người thử, đọc trong trình duyệt, không tải lên đâu. -->
+  <div v-if="canTest3d" class="model-test">
+    <input ref="modelInput" type="file" accept=".glb" hidden @change="onModelFile" />
+    <button
+      class="model-test-btn"
+      :class="{ on: modelState === 'on' }"
+      :disabled="modelState === 'loading'"
+      @click="onModelTestClick"
+    >{{ modelBtnText }}</button>
+    <button
+      v-if="modelState === 'on' || modelState === 'off'"
+      class="model-test-btn small"
+      :title="lang === 'en' ? 'Choose another .glb file' : 'Chọn file .glb khác'"
+      @click="modelInput?.click()"
+    >{{ lang === 'en' ? 'File…' : 'File…' }}</button>
+    <div v-if="modelError" class="model-test-err">{{ modelError }}</div>
+  </div>
+
   <!-- Lưu ý: RoomDetailPanel KHÔNG render ở đây nữa để tránh 2 panel chồng nhau.
        Panel thật (duy nhất) được render ở pages/index.vue, điều khiển bởi
        Pinia store (selectedRoom). currentRoomId ở component này chỉ dùng nội bộ
@@ -122,7 +141,51 @@ import { useDeviceTier } from '~/composables/useDeviceTier'
 
 const mapStore = useMapStore()
 const { tier } = useDeviceTier()
-const { t } = useLang()
+const { t, lang } = useLang()
+
+// ── Chế độ thử mô hình 3D ────────────────────────────────────────────────────
+import { canTestModels, createModelTester } from '~/composables/useModelTester'
+const { user: authUser } = useAuth()
+const canTest3d = computed(() => canTestModels(authUser.value?.email))
+const modelInput = ref(null)
+const modelState = ref('idle') // idle | loading | on | off
+const modelError = ref('')
+let modelTester = null
+const modelBtnText = computed(() => {
+  const en = lang.value === 'en'
+  if (modelState.value === 'loading') return en ? 'Loading…' : 'Đang tải…'
+  if (modelState.value === 'on') return en ? 'Hide 3D model' : 'Ẩn mô hình 3D'
+  if (modelState.value === 'off') return en ? 'Show 3D model' : 'Hiện mô hình 3D'
+  return en ? 'Test 3D model' : 'Thử mô hình 3D'
+})
+function onModelTestClick() {
+  modelError.value = ''
+  if (modelState.value === 'on') { modelTester?.hide(); modelState.value = 'off'; return }
+  if (modelState.value === 'off') { modelTester?.show(); modelState.value = 'on'; return }
+  modelInput.value?.click()
+}
+async function onModelFile(e) {
+  const file = e.target.files?.[0]
+  e.target.value = ''
+  if (!file || !map) return
+  const prev = modelState.value
+  modelState.value = 'loading'
+  modelError.value = ''
+  try {
+    if (!modelTester) modelTester = createModelTester(() => map, base)
+    await modelTester.loadFile(file)
+    modelTester.show({ fly: true })
+    modelState.value = 'on'
+  } catch (err) {
+    console.error('[ModelTester]', err)
+    const en = lang.value === 'en'
+    modelError.value = err?.message === 'not-prepared'
+      ? (en ? 'This file is not prepared for the map (use the simplified LH.glb).' : 'File này chưa được chuẩn bị cho bản đồ (hãy dùng file LH.glb đã giản lược).')
+      : (en ? 'Could not open the 3D model.' : 'Không mở được mô hình 3D.')
+    modelState.value = prev === 'loading' ? 'idle' : prev
+  }
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 const { searchRooms } = useVguData()
 
@@ -1054,6 +1117,7 @@ async function getBuildingRoomsData(buildingId) {
 }
 
 onUnmounted(() => {
+  modelTester?.destroy(); modelTester = null
   clearRoomMarkers()
   if (map) { map.remove(); map = null }
 })
@@ -1258,6 +1322,26 @@ defineExpose({ goToRoom, closeRoomDetail, selectBuilding, highlightEquipment })
 .label-toggle-btn:hover { color: #fff; }
 .label-toggle-btn.on { background: #EF5A24; color: #fff; box-shadow: 0 0 10px rgba(239, 90, 36, 0.6); }
 .map-container.labels-off :deep(.room-marker-card) { display: none; }
+
+/* ── Chế độ thử mô hình 3D ── */
+.model-test {
+  position: absolute; right: 16px; bottom: 96px; z-index: 20;
+  display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; max-width: 260px;
+}
+.model-test-btn {
+  height: 34px; padding: 0 14px; border: 1px solid rgba(6, 182, 212, 0.6); border-radius: 999px;
+  background: rgba(6, 20, 32, 0.85); color: #06B6D4; cursor: pointer;
+  font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+}
+.model-test-btn:hover { color: #fff; border-color: #06B6D4; }
+.model-test-btn.on { background: #06B6D4; color: #04121a; box-shadow: 0 0 10px rgba(6, 182, 212, 0.6); }
+.model-test-btn:disabled { opacity: 0.6; cursor: wait; }
+.model-test-btn.small { padding: 0 10px; }
+.model-test-err {
+  flex-basis: 100%; text-align: right; font-size: 12px; color: #ffb4a0;
+  background: rgba(0, 0, 0, 0.7); padding: 6px 10px; border-radius: 8px;
+}
 :deep(.vgu-room-marker.label-filtered .room-marker-card) { display: none; }
 
 .exit-btn { margin-right: 4px; color: #EF5A24; border-color: rgba(239, 90, 36, 0.25); font-size: 14px; }
