@@ -534,19 +534,19 @@ async function initRoomsLayer() {
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [] }
   })
+  // Khối tường 3D: chiều cao lấy từ thuộc tính `height` (mét) trong file, mặc định 0.5 m
   map.addLayer({
     id: 'vgu-walls-fill',
-    type: 'fill',
+    type: 'fill-extrusion',
     source: 'vgu-walls',
     filter: ['==', ['get', 'kind'], 'wall'],
-    paint: { 'fill-color': '#F5F0E6', 'fill-opacity': 0.95 }
-  })
-  map.addLayer({
-    id: 'vgu-walls-line',
-    type: 'line',
-    source: 'vgu-walls',
-    filter: ['==', ['get', 'kind'], 'wall-line'],
-    paint: { 'line-color': '#F5F0E6', 'line-width': 1, 'line-opacity': 0.9 }
+    paint: {
+      'fill-extrusion-color': '#F5F0E6',
+      'fill-extrusion-height': ['coalesce', ['get', 'height'], 0.5],
+      'fill-extrusion-base': ['coalesce', ['get', 'base_height'], 0],
+      'fill-extrusion-opacity': 0.95,
+      'fill-extrusion-vertical-gradient': true
+    }
   })
 
   map.addSource('vgu-equipment', {
@@ -711,7 +711,7 @@ async function selectBuilding(buildingId) {
   map.setFilter('vgu-selected-outline', ['==', ['get', 'building_id'], buildingId])
 
   const center = buildingCenters[buildingId] || props.initialCenter
-  map.flyTo({ center, zoom: 19.2, pitch: 0, bearing: 0, duration: 1500 })
+  map.flyTo({ center, zoom: 19.2, pitch: 45, bearing: 0, duration: 1500 })  // nghiêng để thấy khối tường 3D
 
   currentBuildingGeojson = await getBuildingRoomsData(buildingId)
 
@@ -757,7 +757,6 @@ function selectFloor(floorNumber) {
   map.setFilter('vgu-rooms-outline', filter)
   if (map.getLayer('vgu-walls-fill')) {
     map.setFilter('vgu-walls-fill', ['all', filter, ['==', ['get', 'kind'], 'wall']])
-    map.setFilter('vgu-walls-line', ['all', filter, ['==', ['get', 'kind'], 'wall-line']])
   }
 
   renderRoomMarkers(floorNumber)
