@@ -12,7 +12,7 @@
 import maplibregl from 'maplibre-gl'
 
 // Email được phép thấy chế độ thử (viết thường)
-export const MODEL_TESTERS = ['nghia.lt@vgu.edu.vn']
+export const MODEL_TESTERS = ['nghia.lt@vgu.edu.vn', 'thy.ph@vgu.edu.vn']
 
 // Toạ độ đặt mô hình. E0/N0: tâm mô hình theo VN-2000 TM-3 kinh tuyến 105°45'
 // (Bình Dương). o/e/n: kinh-vĩ độ WGS84 của tâm, của điểm cách tâm 100 m về
