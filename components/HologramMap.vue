@@ -529,6 +529,26 @@ async function initRoomsLayer() {
     paint: { 'line-color': '#00ffcc', 'line-width': 1.5, 'line-opacity': 0.8 }
   })
 
+  // ── Tường theo tầng (public/data/walls/{building}.geojson) ──────────────
+  map.addSource('vgu-walls', {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] }
+  })
+  map.addLayer({
+    id: 'vgu-walls-fill',
+    type: 'fill',
+    source: 'vgu-walls',
+    filter: ['==', ['get', 'kind'], 'wall'],
+    paint: { 'fill-color': '#F5F0E6', 'fill-opacity': 0.95 }
+  })
+  map.addLayer({
+    id: 'vgu-walls-line',
+    type: 'line',
+    source: 'vgu-walls',
+    filter: ['==', ['get', 'kind'], 'wall-line'],
+    paint: { 'line-color': '#F5F0E6', 'line-width': 1, 'line-opacity': 0.9 }
+  })
+
   map.addSource('vgu-equipment', {
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [] },
@@ -706,6 +726,11 @@ async function selectBuilding(buildingId) {
     }
   }
 
+  const wallsData = await getBuildingWallsData(buildingId)
+  if (map.getSource('vgu-walls')) {
+    map.getSource('vgu-walls').setData(wallsData || { type: 'FeatureCollection', features: [] })
+  }
+
   const defaultFloor = availableFloors.value[0] ?? null
   emit('building-selected', { buildingId, floor: defaultFloor })
   if (defaultFloor != null) selectFloor(defaultFloor)
@@ -730,6 +755,10 @@ function selectFloor(floorNumber) {
   ]
   map.setFilter('vgu-rooms-fill', filter)
   map.setFilter('vgu-rooms-outline', filter)
+  if (map.getLayer('vgu-walls-fill')) {
+    map.setFilter('vgu-walls-fill', ['all', filter, ['==', ['get', 'kind'], 'wall']])
+    map.setFilter('vgu-walls-line', ['all', filter, ['==', ['get', 'kind'], 'wall-line']])
+  }
 
   renderRoomMarkers(floorNumber)
   emit('floor-selected', { buildingId: currentBuildingId.value, floor: floorNumber })
@@ -868,6 +897,9 @@ function exitBuilding() {
 
   if (map.getSource('vgu-rooms')) {
     map.getSource('vgu-rooms').setData({ type: 'FeatureCollection', features: [] })
+  }
+  if (map.getSource('vgu-walls')) {
+    map.getSource('vgu-walls').setData({ type: 'FeatureCollection', features: [] })
   }
 
   map.flyTo({
@@ -1108,6 +1140,22 @@ function renderRoomMarkers(floorNumber) {
   syncZoomVisibility()
   updateMarkerVisibility()
   applyLabelFilter()
+}
+
+const wallCache = new Map()
+// Tường lấy từ bản vẽ CAD (DXF lớp A-WALL / A-WALL-PATT), cùng hệ toạ độ mét với rooms/*.geojson.
+// Toà nào chưa có file walls/{id}.geojson thì trả về null (không lỗi).
+async function getBuildingWallsData(buildingId) {
+  if (wallCache.has(buildingId)) return wallCache.get(buildingId)
+  let data = null
+  try {
+    const response = await fetch(`${base}data/walls/${buildingId}.geojson`)
+    if (response.ok) data = transformBuildingGeojson(buildingId, await response.json())
+  } catch (error) {
+    console.warn(`[HologramMap] Không tải được tường của toà ${buildingId}:`, error)
+  }
+  wallCache.set(buildingId, data)
+  return data
 }
 
 async function getBuildingRoomsData(buildingId) {
