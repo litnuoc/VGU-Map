@@ -102,7 +102,7 @@
   <!-- ================= Chế độ thử mô hình 3D (chỉ email trong MODEL_TESTERS) =================
        File .glb chọn từ máy người thử, đọc trong trình duyệt, không tải lên đâu. -->
   <div v-if="canTest3d" class="model-test">
-    <input ref="modelInput" type="file" accept=".glb" hidden @change="onModelFile" />
+    <input ref="modelInput" type="file" accept=".glb" multiple hidden @change="onModelFile" />
     <button
       class="model-test-btn"
       :class="{ on: modelState === 'on' }"
@@ -165,23 +165,30 @@ function onModelTestClick() {
   modelInput.value?.click()
 }
 async function onModelFile(e) {
-  const file = e.target.files?.[0]
+  const files = [...(e.target.files || [])]
   e.target.value = ''
-  if (!file || !map) return
+  if (!files.length || !map) return
   const prev = modelState.value
   modelState.value = 'loading'
   modelError.value = ''
-  try {
-    if (!modelTester) modelTester = createModelTester(() => map, base)
-    await modelTester.loadFile(file)
-    modelTester.show({ fly: true })
+  const en = lang.value === 'en'
+  const failed = []
+  if (!modelTester) modelTester = createModelTester(() => map, base)
+  // Chọn được nhiều file cùng lúc (vd B1–B6 + LH)
+  for (const file of files) {
+    try {
+      await modelTester.loadFile(file)
+    } catch (err) {
+      console.error('[ModelTester]', file.name, err)
+      failed.push(file.name + (err?.message === 'not-prepared' ? (en ? ' (not prepared for the map)' : ' (chưa chuẩn bị cho bản đồ)') : ''))
+    }
+  }
+  if (failed.length) modelError.value = (en ? 'Could not open: ' : 'Không mở được: ') + failed.join(', ')
+  if (modelTester.loadedIds().length) {
+    modelTester.setExcluded(currentBuildingId.value)
+    modelTester.show({ fly: !currentBuildingId.value })
     modelState.value = 'on'
-  } catch (err) {
-    console.error('[ModelTester]', err)
-    const en = lang.value === 'en'
-    modelError.value = err?.message === 'not-prepared'
-      ? (en ? 'This file is not prepared for the map (use the simplified LH.glb).' : 'File này chưa được chuẩn bị cho bản đồ (hãy dùng file LH.glb đã giản lược).')
-      : (en ? 'Could not open the 3D model.' : 'Không mở được mô hình 3D.')
+  } else {
     modelState.value = prev === 'loading' ? 'idle' : prev
   }
 }
@@ -290,6 +297,8 @@ function polygonCentroid(coordinates) {
 }
 
 const currentBuildingId = ref(null)
+// Đang xem bên trong một toà → ẩn mô hình của toà đó để thấy tầng/phòng
+watch(currentBuildingId, id => modelTester?.setExcluded(id))
 const currentFloor = ref(null)
 const currentRoomId = ref(null)
 const selectedEquipmentId = ref(null) // NEW: tracks the active equipment for map highlight
