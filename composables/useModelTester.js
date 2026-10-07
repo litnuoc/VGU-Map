@@ -8,7 +8,8 @@
 // • File phải là bản đã chuẩn bị cho bản đồ: toạ độ tính bằng mét, tâm tại
 //   toà nhà (x = Đông, y = lên, z = −Bắc) và có asset.extras:
 //     – extras.georef = { o, e, n } (kinh-vĩ độ của tâm, điểm 100 m về Đông,
-//       100 m về Bắc) + extras.building = 'B1'…   (các file B1–B6), hoặc
+//       100 m về Bắc) + extras.building = 'B1'… (+ extras.hides = các khối tím
+//       cần ẩn khi hiện mô hình, vd GH ẩn cả V1–V8), hoặc
 //     – extras.origin_vn2000 khớp một mục trong MODEL_GEO (file LH).
 //   File gốc chưa chuẩn bị sẽ bị từ chối.
 // • Khi đang xem bên trong một toà (chọn tầng/phòng), mô hình của toà đó tự ẩn.
@@ -36,12 +37,13 @@ export function canTestModels(email) {
 
 function resolveGeo(extras) {
   if (extras?.georef?.o && extras.georef.e && extras.georef.n) {
-    return { id: String(extras.building || 'MODEL'), geo: extras.georef }
+    const id = String(extras.building || 'MODEL')
+    return { id, geo: extras.georef, hides: Array.isArray(extras.hides) ? extras.hides.map(String) : [id] }
   }
   const origin = extras?.origin_vn2000
   const id = origin && Object.keys(MODEL_GEO).find(k =>
     Math.abs(MODEL_GEO[k].E0 - origin.E) < 1 && Math.abs(MODEL_GEO[k].N0 - origin.N) < 1)
-  return id ? { id, geo: MODEL_GEO[id] } : null
+  return id ? { id, geo: MODEL_GEO[id], hides: [id] } : null
 }
 
 export function createModelTester(getMap, baseURL) {
@@ -53,7 +55,10 @@ export function createModelTester(getMap, baseURL) {
 
   function applyBuildingHeights(map) {
     if (!map.getLayer('vgu-buildings-3d')) return
-    const ids = visible ? [...models.keys()].filter(id => id !== excluded) : []
+    // khối tím bị ẩn = các toà mà mô hình đang hiện thay thế (extras.hides)
+    const ids = visible
+      ? [...new Set([...models].filter(([id]) => id !== excluded).flatMap(([, m]) => m.hides))]
+      : []
     map.setPaintProperty('vgu-buildings-3d', 'fill-extrusion-height', ids.length
       ? ['match', ['get', 'building_id'], ids, 0, ['get', 'height']]
       : ['get', 'height'])
@@ -138,7 +143,7 @@ export function createModelTester(getMap, baseURL) {
     scene.add(gltf.scene)
 
     if (models.has(r.id)) disposeScene(models.get(r.id).scene)
-    models.set(r.id, { scene, matrix: buildMatrix(r.geo), geo: r.geo })
+    models.set(r.id, { scene, matrix: buildMatrix(r.geo), geo: r.geo, hides: r.hides })
     return r.id
   }
 
