@@ -539,6 +539,8 @@ async function initRoomsLayer() {
     id: 'vgu-walls-fill',
     type: 'fill-extrusion',
     source: 'vgu-walls',
+    // Chỉ hiện khi zoom gần, cùng ngưỡng với khung tên phòng (ROOM_MARKER_MINZOOM = 19.0)
+    minzoom: ROOM_MARKER_MINZOOM,
     filter: ['==', ['get', 'kind'], 'wall'],
     paint: {
       'fill-extrusion-color': '#F5F0E6',
