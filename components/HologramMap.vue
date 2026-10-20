@@ -99,6 +99,13 @@
     </div>
   </Transition>
 
+  <!-- ================= Thông báo định vị GPS ================= -->
+  <Transition name="fade">
+    <div v-if="gpsNotice" class="gps-notice" role="status">
+      <span class="gps-dot"></span>{{ gpsNotice }}
+    </div>
+  </Transition>
+
   <!-- ================= Chế độ thử mô hình 3D (chỉ email trong MODEL_TESTERS) =================
        File .glb chọn từ máy người thử, đọc trong trình duyệt, không tải lên đâu. -->
   <div v-if="canTest3d" class="model-test">
@@ -142,6 +149,24 @@ import { useDeviceTier } from '~/composables/useDeviceTier'
 const mapStore = useMapStore()
 const { tier } = useDeviceTier()
 const { t, lang } = useLang()
+
+// ── Định vị GPS (nút "Vị trí của tôi" của MapLibre) ──────────────────────────
+// Vị trí chỉ xử lý trong trình duyệt, không gửi đi đâu. Trong nhà GPS kém chính xác.
+const gpsNotice = ref('')
+let gpsNoticeTimer = null
+let gpsFarWarned = false
+const CAMPUS_RADIUS_M = 1500
+function showGpsNotice(msg, ms = 6000) {
+  gpsNotice.value = msg
+  clearTimeout(gpsNoticeTimer)
+  gpsNoticeTimer = setTimeout(() => { gpsNotice.value = '' }, ms)
+}
+function distanceM([lng1, lat1], [lng2, lat2]) {
+  const R = 6371000, rad = Math.PI / 180
+  const dLat = (lat2 - lat1) * rad, dLng = (lng2 - lng1) * rad
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLng / 2) ** 2
+  return 2 * R * Math.asin(Math.sqrt(a))
+}
 
 // ── Chế độ thử mô hình 3D ────────────────────────────────────────────────────
 import { canTestModels, createModelTester } from '~/composables/useModelTester'
@@ -326,10 +351,42 @@ onMounted(() => {
     zoom: props.initialZoom,
     pitch: props.initialPitch,
     bearing: INITIAL_BEARING,
-    antialias: true
+    antialias: true,
+    locale: {
+      'GeolocateControl.FindMyLocation': t('map.gpsFind'),
+      'GeolocateControl.LocationNotAvailable': t('map.gpsUnavailable')
+    }
   })
 
   map.addControl(new maplibregl.NavigationControl(), 'top-right')
+
+  // Nút định vị: chấm xanh + vòng sai số, bám theo khi người dùng di chuyển.
+  const geolocate = new maplibregl.GeolocateControl({
+    positionOptions: { enableHighAccuracy: true, timeout: 15000, maximumAge: 5000 },
+    trackUserLocation: true,
+    showUserLocation: true,
+    showAccuracyCircle: true,
+    fitBoundsOptions: { maxZoom: 18.5 }
+  })
+  map.addControl(geolocate, 'top-right')
+  geolocate.on('geolocate', (pos) => {
+    const here = [pos.coords.longitude, pos.coords.latitude]
+    const d = distanceM(here, props.initialCenter)
+    if (d > CAMPUS_RADIUS_M) {
+      if (!gpsFarWarned) {
+        gpsFarWarned = true
+        showGpsNotice(t('map.gpsFar', { km: (d / 1000).toFixed(1) }), 8000)
+      }
+    } else {
+      gpsFarWarned = false
+      if (pos.coords.accuracy > 30) showGpsNotice(t('map.gpsWeak', { m: Math.round(pos.coords.accuracy) }))
+    }
+  })
+  geolocate.on('error', (err) => {
+    console.warn('[HologramMap] GPS error', err)
+    showGpsNotice(err?.code === 1 ? t('map.gpsDenied') : t('map.gpsUnavailable'), 8000)
+  })
+  geolocate.on('trackuserlocationend', () => { gpsFarWarned = false })
   map.addControl(new maplibregl.ScaleControl({ maxWidth: 120, unit: 'metric' }), 'bottom-right')
 
   map.on('load', async () => {
@@ -1175,6 +1232,7 @@ async function getBuildingRoomsData(buildingId) {
 }
 
 onUnmounted(() => {
+  clearTimeout(gpsNoticeTimer)
   modelTester?.destroy(); modelTester = null
   clearRoomMarkers()
   if (map) { map.remove(); map = null }
@@ -1414,6 +1472,14 @@ defineExpose({ goToRoom, closeRoomDetail, selectBuilding, highlightEquipment })
   font-size: 12px; line-height: 1.4;
 }
 .calib-notice b { color: #EF5A24; }
+.gps-notice {
+  position: absolute; top: 136px; left: 50%; transform: translateX(-50%);
+  z-index: 25; display: flex; align-items: center; gap: 10px; max-width: 90vw;
+  padding: 10px 16px; background: rgba(15, 30, 54, 0.94);
+  border: 1px solid rgba(6, 182, 212, 0.5); border-radius: 6px;
+  backdrop-filter: blur(8px); color: #e0e0e0; font-size: 13px; line-height: 1.4;
+}
+.gps-dot { width: 8px; height: 8px; border-radius: 50%; background: #06B6D4; box-shadow: 0 0 8px #06B6D4; flex-shrink: 0; }
 .calib-dot {
   width: 8px; height: 8px; border-radius: 50%; background: #EF5A24;
   box-shadow: 0 0 8px #EF5A24; animation: calib-pulse 1.4s ease-in-out infinite; flex-shrink: 0;
@@ -1470,6 +1536,7 @@ defineExpose({ goToRoom, closeRoomDetail, selectBuilding, highlightEquipment })
   .floor-bar-label { flex-shrink: 0; }
   .exit-btn { flex-shrink: 0; }
   .calib-notice { top: calc(var(--header-h-mobile, 54px) + 138px); bottom: auto; z-index: 61; }
+  .gps-notice { top: calc(var(--header-h-mobile, 54px) + 76px); z-index: 120; font-size: 12px; }
   :deep(.room-marker-card) { min-width: 84px; max-width: 130px; padding: 4px 8px; }
   :deep(.room-marker-id) { font-size: 9px; }
   :deep(.room-marker-name) { font-size: 8px; line-clamp: 1; -webkit-line-clamp: 1; }
