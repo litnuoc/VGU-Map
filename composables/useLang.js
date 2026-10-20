@@ -33,6 +33,11 @@ const MESSAGES = {
     'map.labelsOff': 'Ẩn khung tên phòng, chỉ giữ chấm',
     'map.calibA': 'Sơ đồ phòng tòa',
     'map.calibB': 'chưa được định vị GPS — đang chờ hiệu chỉnh tọa độ.',
+    'map.gpsFind': 'Vị trí của tôi',
+    'map.gpsUnavailable': 'Không lấy được vị trí. Hãy bật định vị (GPS) trên điện thoại.',
+    'map.gpsDenied': 'Bạn đã chặn quyền vị trí. Hãy cho phép trình duyệt truy cập vị trí rồi thử lại.',
+    'map.gpsFar': 'Bạn đang ở ngoài khuôn viên VGU (cách khoảng {km} km).',
+    'map.gpsWeak': 'Tín hiệu GPS yếu (sai số khoảng {m} m). Trong nhà vị trí có thể không chính xác.',
 
     'bld.list': 'Danh sách toà nhà',
     'bld.open': 'Mở danh sách toà nhà',
@@ -194,6 +199,11 @@ const MESSAGES = {
     'map.labelsOff': 'Hide room labels, keep the dots',
     'map.calibA': 'The room plan of building',
     'map.calibB': 'is not GPS-aligned yet — waiting for coordinate calibration.',
+    'map.gpsFind': 'My location',
+    'map.gpsUnavailable': 'Location unavailable. Please turn on location (GPS) on your phone.',
+    'map.gpsDenied': 'Location access is blocked. Allow your browser to use your location and try again.',
+    'map.gpsFar': 'You are outside the VGU campus (about {km} km away).',
+    'map.gpsWeak': 'Weak GPS signal (accuracy about {m} m). Indoors the position may be inaccurate.',
 
     'bld.list': 'Building list',
     'bld.open': 'Open building list',
