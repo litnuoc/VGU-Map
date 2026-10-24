@@ -608,6 +608,25 @@ async function initRoomsLayer() {
     }
   })
 
+  // ── Cửa (KIỂM TRA) theo tầng (public/data/doors/{building}.geojson) ──────
+  // Mỗi cửa là 1 LineString: tâm = toạ độ cửa, dài = width. Xanh = sát cạnh phòng
+  // (ok=true), đỏ = lệch >= 0.2 m so với cạnh phòng gần nhất.
+  map.addSource('vgu-doors', {
+    type: 'geojson',
+    data: { type: 'FeatureCollection', features: [] }
+  })
+  map.addLayer({
+    id: 'vgu-doors-line',
+    type: 'line',
+    source: 'vgu-doors',
+    layout: { 'line-cap': 'butt' },
+    paint: {
+      'line-color': ['case', ['boolean', ['get', 'ok'], false], '#22C55E', '#EF4444'],
+      'line-width': ['interpolate', ['linear'], ['zoom'], 17, 2, 20, 5, 22, 9],
+      'line-opacity': 0.95
+    }
+  })
+
   map.addSource('vgu-equipment', {
     type: 'geojson',
     data: { type: 'FeatureCollection', features: [] },
@@ -790,6 +809,11 @@ async function selectBuilding(buildingId) {
     map.getSource('vgu-walls').setData(wallsData || { type: 'FeatureCollection', features: [] })
   }
 
+  const doorsData = await getBuildingDoorsData(buildingId)
+  if (map.getSource('vgu-doors')) {
+    map.getSource('vgu-doors').setData(doorsData || { type: 'FeatureCollection', features: [] })
+  }
+
   const defaultFloor = availableFloors.value[0] ?? null
   emit('building-selected', { buildingId, floor: defaultFloor })
   if (defaultFloor != null) selectFloor(defaultFloor)
@@ -816,6 +840,9 @@ function selectFloor(floorNumber) {
   map.setFilter('vgu-rooms-outline', filter)
   if (map.getLayer('vgu-walls-fill')) {
     map.setFilter('vgu-walls-fill', ['all', filter, ['==', ['get', 'kind'], 'wall']])
+  }
+  if (map.getLayer('vgu-doors-line')) {
+    map.setFilter('vgu-doors-line', filter)
   }
 
   renderRoomMarkers(floorNumber)
@@ -958,6 +985,9 @@ function exitBuilding() {
   }
   if (map.getSource('vgu-walls')) {
     map.getSource('vgu-walls').setData({ type: 'FeatureCollection', features: [] })
+  }
+  if (map.getSource('vgu-doors')) {
+    map.getSource('vgu-doors').setData({ type: 'FeatureCollection', features: [] })
   }
 
   map.flyTo({
@@ -1213,6 +1243,31 @@ async function getBuildingWallsData(buildingId) {
     console.warn(`[HologramMap] Không tải được tường của toà ${buildingId}:`, error)
   }
   wallCache.set(buildingId, data)
+  return data
+}
+
+const doorCache = new Map()
+// Cửa (LineString, hệ mét giống rooms/*.geojson). Không có file → null (không lỗi).
+async function getBuildingDoorsData(buildingId) {
+  if (doorCache.has(buildingId)) return doorCache.get(buildingId)
+  let data = null
+  try {
+    const response = await fetch(`${base}data/doors/${buildingId}.geojson`)
+    if (response.ok) {
+      const raw = await response.json()
+      const coeffs = BUILDING_AFFINE[buildingId]
+      data = !coeffs ? raw : {
+        type: 'FeatureCollection',
+        features: raw.features.map(f => ({
+          ...f,
+          geometry: { ...f.geometry, coordinates: transformRing(f.geometry.coordinates, coeffs) }
+        }))
+      }
+    }
+  } catch (error) {
+    console.warn(`[HologramMap] Không tải được cửa của toà ${buildingId}:`, error)
+  }
+  doorCache.set(buildingId, data)
   return data
 }
 
